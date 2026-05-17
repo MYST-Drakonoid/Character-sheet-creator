@@ -21,9 +21,9 @@ import {
 } from './catalog/catalog.js';
 
 import {
-    showFacultyList,
-    showFacultyDetail
-} from './facultyController.js';
+    facultyPage,
+    facultyDetailPage
+} from './faculty/faculty.js';
 
 // ==================================================
 // Basic Site Pages
@@ -35,8 +35,8 @@ router.get('/products', productsPage);
 // ==================================================
 // Faculty Directory
 // ==================================================
-router.get('/faculty', showFacultyList);
-router.get('/faculty/:id', showFacultyDetail);
+router.get('/faculty', facultyPage);
+router.get('/faculty/:facultyId', facultyDetailPage);
 
 // ==================================================
 // Course Catalog

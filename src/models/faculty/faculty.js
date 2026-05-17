@@ -72,6 +72,9 @@ const faculty = {
         title: 'Assistant Professor'
     }
 };
+const getAllFaculty = () => {
+    return faculty;
+};
 const getFacultyById = (facultyId) => {
     return faculty[facultyId] || null;
 };
@@ -96,3 +99,5 @@ const getSortedFaculty = (sortBy) => {
 
     return facultyArray;
 };
+
+export { getAllFaculty, getFacultyById, getSortedFaculty };
