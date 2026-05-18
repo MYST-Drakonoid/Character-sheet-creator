@@ -1,6 +1,27 @@
 <%- include('partials/header') %>
-<main>
-    <h1><%= title %></h1>
-    <p> hello world </p>
+
+<main class="page home-page">
+    <section class="hero">
+        <div>
+            <p class="eyebrow">🚀 Welcome to the galaxy</p>
+            <h1><%= title %></h1>
+            <p>
+                A silly space site for lost astronauts, confused aliens, and planets with dramatic personalities.
+            </p>
+
+            <div class="button-row">
+                <a href="/about" class="btn">Meet the Crew</a>
+                <a href="/products" class="btn btn-secondary">View Space Stuff</a>
+            </div>
+        </div>
+
+        <div class="status-card">
+            <h2>Mission Status</h2>
+            <p>🛰 Navigation: questionable</p>
+            <p>👽 Alien mood: suspicious</p>
+            <p>🪐 Pluto: still invited</p>
+        </div>
+    </section>
 </main>
+
 <%- include('partials/footer') %>
