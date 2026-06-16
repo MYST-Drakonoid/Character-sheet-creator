@@ -1,0 +1,81 @@
+.catalog-grid,
+.sections-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1rem;
+    margin-top: 2rem;
+}
+
+.catalog-card,
+.section-card {
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    border-radius: 20px;
+    padding: 1.5rem;
+    backdrop-filter: blur(8px);
+}
+
+.catalog-card h2,
+.section-card h3 {
+    margin-top: 0;
+}
+
+.catalog-card a,
+.section-card a {
+    color: #c9a7ff;
+}
+
+.course-meta {
+    color: #c9a7ff;
+    font-weight: bold;
+}
+
+.sort-links {
+    margin: 1.5rem 0;
+}
+
+.sort-links .btn {
+    margin-right: 0.5rem;
+}
+
+.back-link {
+    margin-top: 2rem;
+}
+
+@media (max-width: 750px) {
+    .catalog-grid,
+    .sections-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+.catalog-card a{
+    color: white;
+    text-decoration: none;
+}
+
+.catalog-card h2 a{
+    color: #c9a7ff;
+}
+
+.catalog-card h2 a:hover{
+    color: white;
+    text-decoration: underline;
+}
+
+.catalog-card{
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    min-height: 360px;
+}
+
+.catalog-card .btn{
+    align-self: flex-start;
+    color: white;
+    text-decoration: none;
+}
+
+.catalog-card p{
+    line-height: 1.35;
+}

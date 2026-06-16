@@ -1,0 +1,101 @@
+.registration-form,
+.users-list {
+    max-width: 650px;
+    margin: 2rem auto;
+}
+
+.registration-form {
+    padding: 2rem;
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    border-radius: 20px;
+    backdrop-filter: blur(8px);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
+}
+
+.registration-form .form-group {
+    margin-bottom: 1.25rem;
+}
+
+.registration-form label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-weight: bold;
+    color: white;
+}
+
+.registration-form input {
+    width: 100%;
+    padding: 0.85rem 1rem;
+    border: 1px solid rgba(255, 255, 255, 0.22);
+    border-radius: 12px;
+    background: rgba(8, 11, 31, 0.7);
+    color: white;
+    font-size: 1rem;
+}
+
+.registration-form input:focus {
+    outline: none;
+    border-color: #c9a7ff;
+    box-shadow: 0 0 0 3px rgba(201, 167, 255, 0.25);
+}
+
+.registration-form .help-text {
+    margin-top: 0.4rem;
+    font-size: 0.85rem;
+    color: rgba(255, 255, 255, 0.75);
+}
+
+.registration-form button {
+    width: 100%;
+    margin-top: 0.5rem;
+    padding: 0.9rem 1.2rem;
+    background: #8b5cf6;
+    color: white;
+    border: none;
+    border-radius: 999px;
+    font-size: 1rem;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+.registration-form button:hover {
+    background: #a78bfa;
+}
+
+.user-card {
+    margin-bottom: 1rem;
+    padding: 1.25rem;
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    border-radius: 18px;
+    backdrop-filter: blur(8px);
+}
+
+.user-header {
+    display: flex;
+    justify-content: space-between;
+    gap: 1rem;
+    align-items: center;
+    margin-bottom: 1rem;
+}
+
+.user-id {
+    color: rgba(255, 255, 255, 0.7);
+    font-size: 0.85rem;
+}
+
+.user-details {
+    display: grid;
+    gap: 0.75rem;
+}
+
+.detail-item .label {
+    color: #c9a7ff;
+    font-weight: bold;
+    font-size: 0.85rem;
+}
+
+.detail-item .value {
+    color: white;
+}
