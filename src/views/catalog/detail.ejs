@@ -1,0 +1,40 @@
+<%- include('../partials/header') %>
+
+<main class="page">
+    <section class="content-card">
+        <h1><%= course.courseCode %> - <%= course.name %></h1>
+
+        <p><strong>Department:</strong> <%= course.department %></p>
+        <p><strong>Credits:</strong> <%= course.creditHours %></p>
+        <p><%= course.description %></p>
+
+        <div class="button-row">
+            <a href="/catalog/<%= course.id %>?sort=time" class="btn">Sort by Time</a>
+            <a href="/catalog/<%= course.id %>?sort=professor" class="btn btn-secondary">Sort by Professor</a>
+            <a href="/catalog/<%= course.id %>?sort=room" class="btn btn-secondary">Sort by Room</a>
+        </div>
+
+        <h2>Sections</h2>
+
+        <div class="card-grid">
+            <% sections.forEach(section => { %>
+                <article class="mini-card">
+                    <p><strong>Time:</strong> <%= section.time %></p>
+                    <p><strong>Room:</strong> <%= section.room %></p>
+                    <p>
+                        <strong>Professor:</strong>
+                        <a href="/faculty/<%= section.professorSlug %>">
+                            <%= section.professor %>
+                        </a>
+                    </p>
+                </article>
+            <% }) %>
+        </div>
+
+        <p style="margin-top: 2rem;">
+            <a href="/catalog" class="btn btn-secondary">← Back to Catalog</a>
+        </p>
+    </section>
+</main>
+
+<%- include('../partials/footer') %>

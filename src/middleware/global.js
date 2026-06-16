@@ -15,11 +15,25 @@ const getCurrentGreeting = () => {
     return 'Good Evening!';
 };
 
+const setHeadAssetsFunctionality = (res) => {
+    res.locals.styles = [];
+
+    res.addStyle = (style) => {
+        res.locals.styles.push(style);
+    };
+
+    res.locals.renderStyles = () => {
+        return res.locals.styles.join("\n");
+    };
+};
+
 /**
  * Middleware to add local variables to res.locals for use in all templates.
  * Templates can access these values but are not required to use them.
  */
 const addLocalVariables = (req, res, next) => {
+
+    setHeadAssetsFunctionality(res);
     // Set current year for use in templates
     res.locals.currentYear = new Date().getFullYear();
 

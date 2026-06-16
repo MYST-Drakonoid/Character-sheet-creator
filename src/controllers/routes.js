@@ -25,6 +25,19 @@ import {
     facultyDetailPage
 } from './faculty/faculty.js';
 
+router.use('/faculty', (req, res, next) => {
+    res.addStyle(
+        '<link rel="stylesheet" href="/css/faculty.css">'
+    );
+
+    next();
+});
+
+router.use('/catalog', (req, res, next) => {
+    res.addStyle('<link rel="stylesheet" href="/css/catalog.css">');
+    next();
+});
+
 // ==================================================
 // Basic Site Pages
 // ==================================================

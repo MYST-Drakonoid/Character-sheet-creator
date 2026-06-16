@@ -1,0 +1,63 @@
+.faculty-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 1.5rem;
+    margin-top: 2rem;
+}
+
+.faculty-card {
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    border-radius: 20px;
+    padding: 1.5rem;
+    backdrop-filter: blur(8px);
+
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.faculty-card h2 {
+    margin-top: 0;
+    margin-bottom: 0.5rem;
+}
+
+.faculty-card h2 a {
+    color: #c9a7ff;
+    text-decoration: none;
+}
+
+.faculty-card h2 a:hover {
+    color: white;
+    text-decoration: underline;
+}
+
+.faculty-card p {
+    margin: 0.35rem 0;
+    line-height: 1.35;
+}
+
+.faculty-card .btn {
+    color: white;
+    text-decoration: none;
+    align-self: flex-start;
+}
+
+.button-row {
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
+    margin: 2rem 0;
+}
+
+@media (max-width: 900px) {
+    .faculty-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 650px) {
+    .faculty-grid {
+        grid-template-columns: 1fr;
+    }
+}
