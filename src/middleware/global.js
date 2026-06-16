@@ -33,6 +33,11 @@ const setHeadAssetsFunctionality = (res) => {
  */
 const addLocalVariables = (req, res, next) => {
 
+    res.locals.isLoggedIn = false;
+    if (req.session && req.session.user) {
+        res.locals.isLoggedIn = true;
+    }
+
     setHeadAssetsFunctionality(res);
     // Set current year for use in templates
     res.locals.currentYear = new Date().getFullYear();

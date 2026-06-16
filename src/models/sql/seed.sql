@@ -8,7 +8,8 @@ DROP TABLE IF EXISTS catalog CASCADE;
 DROP TABLE IF EXISTS faculty CASCADE;
 DROP TABLE IF EXISTS courses CASCADE;
 DROP TABLE IF EXISTS departments CASCADE;
-DROP TABLE IF EXISTS contact_form CASCADE;
+
+
 
 -- Create departments table
 CREATE TABLE departments (
@@ -19,14 +20,6 @@ CREATE TABLE departments (
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
---create contact table
-CREATE TABLE contact_form (
-    id SERIAL PRIMARY KEY,
-    name VARCHAR(100) NOT NULL,
-    email VARCHAR(255) NOT NULL,
-    message TEXT NOT NULL,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
 
 -- Create courses table
 CREATE TABLE courses (

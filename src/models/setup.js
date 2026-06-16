@@ -44,6 +44,8 @@ const setupDatabase = async () => {
         await db.query(practiceSQL);
         console.log('Practice database tables initialized');
 }
+
+
     await db.query(seedSQL);
     console.log('Database seeded successfully');
     
