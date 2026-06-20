@@ -1,16 +1,38 @@
 /**
- * Middleware to require authentication for protected routes.
- * Redirects to login page if user is not authenticated.
- * Sets res.locals.isLoggedIn = true for authenticated requests.
+ * Authentication middleware for protected routes.
+ *
+ * Verifies that a valid user session exists before allowing access
+ * to application features that require authentication.
+ *
+ * Current authentication model:
+ * - Session-based authentication
+ * - User data stored on req.session.user
+ *
+ * Future enhancements may include:
+ * - Role-based access control
+ * - Permission-based authorization
+ * - Character ownership validation
+ * - Administrative access levels
  */
 const requireLogin = (req, res, next) => {
-    // Check if user is logged in via session; we can beef this up later with roles and permissions
+    /**
+     * Check whether the current request has an active authenticated session.
+     */
     if (req.session && req.session.user) {
-        // User is authenticated - set UI state and continue
+        /**
+         * Expose authentication status to EJS views so navigation
+         * and page content can adjust accordingly.
+         */
         res.locals.isLoggedIn = true;
+
+        /**
+         * Continue processing the requested route.
+         */
         next();
     } else {
-        // User is not authenticated - redirect to login
+        /**
+         * Unauthenticated users are redirected to the login page.
+         */
         res.redirect('/login');
     }
 };

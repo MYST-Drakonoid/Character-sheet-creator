@@ -5,7 +5,10 @@ import { Router } from 'express';
 const router = Router();
 
 /**
- * Validation rules for login form
+ * Validation rules for the Log In form.
+ *
+ * TODO: Consider improving password validation message.
+ * Current rule checks for length, but the message says "Password is required."
  */
 const loginValidation = [
     body('email')
@@ -20,118 +23,164 @@ const loginValidation = [
 ];
 
 /**
- * Display the login form.
+ * Display the Log In form.
  */
 const showLoginForm = (req, res) => {
     res.render('forms/login/form', {
-        title: 'User Login'
+        title: 'Log In',
+        email: '',
+        error: null
     });
 };
 
 /**
- * Process login form submission.
+ * Process Log In form submission.
  */
 const processLogin = async (req, res) => {
-    // Check for validation errors
     const errors = validationResult(req);
 
+    /**
+     * If validation fails, return the user to the Log In form.
+     * The submitted email is preserved, but the password is not.
+     */
     if (!errors.isEmpty()) {
         console.log(errors.array());
-        res.redirect('/login');
+
+        res.render('forms/login/form', {
+            title: 'Log In',
+            email: req.body.email || '',
+            error: 'Please enter a valid email and password.'
+        });
+
         return;
     }
 
     const { email, password } = req.body;
 
     try {
+        /**
+         * Look up the user account by email.
+         */
+        const user = await findUserByEmail(email);
 
-        const user = await findUserByEmail(email)
-        // TODO: Find user by email using findUserByEmail()
-        // TODO: If not found, log "User not found" and redirect to /login
-
+        /**
+         * Do not reveal whether the email or password was wrong.
+         */
         if (!user) {
             console.log('User not found');
-            res.redirect('/login');
-            return;
-}
 
-        const passMatch = await verifyPassword(password, user.password)
+            res.render('forms/login/form', {
+                title: 'Log In',
+                email,
+                error: 'Invalid email or password.'
+            });
 
-        if (!passMatch) {
-            console.log("invalid password");
-            res.redirect('/login');
             return;
         }
 
-        // TODO: Verify password using verifyPassword(password, user.password)
-        // TODO: If password incorrect, log "Invalid password" and redirect to /login
+        /**
+         * Verify the submitted password against the stored password hash.
+         */
+        const passMatch = await verifyPassword(password, user.password);
 
-        // SECURITY: Remove password from user object before storing in session
+        if (!passMatch) {
+            console.log('Invalid password');
+
+            res.render('forms/login/form', {
+                title: 'Log In',
+                email,
+                error: 'Invalid email or password.'
+            });
+
+            return;
+        }
+
+        /**
+         * SECURITY: Remove password before storing user data in session.
+         */
         delete user.password;
 
+        /**
+         * Store authenticated user data in the session.
+         *
+         * TODO: Later, decide exactly which user fields belong in the session.
+         * For example: id, name, email, role.
+         */
         req.session.user = user;
-        res.redirect('/dashboard')
+
+        res.redirect('/dashboard');
     } catch (error) {
         console.log('error logging in:', error);
-        res.redirect('/login');
+
+        /**
+         * If something unexpected fails, preserve the submitted email
+         * and show a generic error message.
+         */
+        res.render('forms/login/form', {
+            title: 'Log In',
+            email: req.body.email || '',
+            error: 'Something went wrong while logging in. Please try again.'
+        });
     }
 };
 
 /**
  * Handle user logout.
- * 
- * NOTE: connect.sid is the default session cookie name since we did not
- * specify a custom name when creating the session in server.js.
+ *
+ * NOTE: connect.sid is the default session cookie name because no custom
+ * session cookie name is currently configured in server.js.
+ *
+ * TODO: Update this note if a custom session cookie name is added later.
  */
 const processLogout = (req, res) => {
-    // First, check if there is a session object on the request
     if (!req.session) {
-        // If no session exists, there's nothing to destroy,
-        // so we just redirect the user back to the home page
         return res.redirect('/');
     }
 
-    // Call destroy() to remove this session from the store (PostgreSQL in our case)
+    /**
+     * Destroy the session in the session store.
+     */
     req.session.destroy((err) => {
         if (err) {
-            // If something goes wrong while removing the session from the database:
             console.error('Error destroying session:', err);
 
             /**
-             * Clear the session cookie from the browser anyway, so the client
-             * does not keep sending an invalid session ID.
+             * Clear the browser cookie even if server-side session destruction fails.
              */
             res.clearCookie('connect.sid');
 
-            /** 
-             * Normally we would respond with a 500 error since logout did not fully succeed.
-             * Example: return res.status(500).send('Error logging out');
-             * 
-             * Since this is a practice site, we will redirect to the home page anyway.
+            /**
+             * TODO: Decide whether logout failure should redirect home
+             * or show a real server error in production.
              */
             return res.redirect('/');
         }
 
-        // If session destruction succeeded, clear the session cookie from the browser
         res.clearCookie('connect.sid');
-
-        // Redirect the user to the home page
         res.redirect('/');
     });
 };
 
 /**
- * Display protected dashboard (requires login).
+ * Display the protected dashboard.
+ *
+ * Requires requireLogin middleware before this route.
  */
 const showDashboard = (req, res) => {
     const user = req.session.user;
     const sessionData = req.session;
 
-    // Security check! Ensure user and sessionData do not contain password field
+    /**
+     * Security cleanup in case password data accidentally reaches the session.
+     *
+     * TODO: Remove this defensive cleanup once session user shape is finalized
+     * and tested.
+     */
     if (user && user.password) {
         console.error('Security error: password found in user object');
         delete user.password;
     }
+
     if (sessionData.user && sessionData.user.password) {
         console.error('Security error: password found in sessionData.user');
         delete sessionData.user.password;
@@ -144,10 +193,14 @@ const showDashboard = (req, res) => {
     });
 };
 
-// Routes
+/**
+ * Log In routes.
+ */
 router.get('/', showLoginForm);
 router.post('/', loginValidation, processLogin);
 
-// Export router as default, and specific functions for root-level routes
+/**
+ * Export router and root-level authentication handlers.
+ */
 export default router;
 export { processLogout, showDashboard };

@@ -1,25 +1,37 @@
 <%- include('partials/header') %>
 
 <main class="page home-page">
+    <!-- Landing section for new and returning users. -->
     <section class="hero">
         <div>
-            <p class="eyebrow">🚀 Welcome to the galaxy</p>
+            <!-- Short project label shown above the page title. -->
+            <p class="eyebrow">D&amp;D Modular Character Creator</p>
+
             <h1><%= title %></h1>
+
+            <!-- Main explanation of the app's purpose. -->
             <p>
-                A silly space site for lost astronauts, confused aliens, and planets with dramatic personalities.
+                Create an account or log in to build, save, and manage your modular D&amp;D characters.
             </p>
 
+            <!-- Primary account actions change depending on login status. -->
             <div class="button-row">
-                <a href="/about" class="btn">Meet the Crew</a>
-                <a href="/products" class="btn btn-secondary">View Space Stuff</a>
+                <% if (typeof isLoggedIn !== 'undefined' && isLoggedIn) { %>
+                    <a href="/dashboard" class="btn">Go to Dashboard</a>
+                    <a href="/logout" class="btn btn-secondary">Logout</a>
+                <% } else { %>
+                    <a href="/login" class="btn">Log In</a>
+                    <a href="/register" class="btn btn-secondary">Sign Up</a>
+                <% } %>
             </div>
         </div>
 
+        <!-- Brief feature summary for the character creator. -->
         <div class="status-card">
-            <h2>Mission Status</h2>
-            <p>🛰 Navigation: questionable</p>
-            <p>👽 Alien mood: suspicious</p>
-            <p>🪐 Pluto: still invited</p>
+            <h2>Build Your Character</h2>
+            <p>Save characters to your account.</p>
+            <p>Create custom classes, spells, items, and rules.</p>
+            <p>Keep each user&apos;s characters separate and organized.</p>
         </div>
     </section>
 </main>

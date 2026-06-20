@@ -1,9 +1,14 @@
 <%- include('../../partials/header') %>
+
 <main>
+    <!-- Sign Up page title. -->
     <h1>Register</h1>
 
-    <form method="POST" action="/register" class="registration-form">
+```
+<!-- New user registration form. -->
+<form method="POST" action="/register" class="registration-form">
 
+    <!-- User display name. -->
     <div class="form-group">
         <label for="name">Name</label>
 
@@ -16,6 +21,8 @@
             required
         >
     </div>
+
+    <!-- Primary email address used for authentication and account recovery. -->
     <div class="form-group">
         <label for="email">Email</label>
 
@@ -28,6 +35,7 @@
         >
     </div>
 
+    <!-- Email confirmation to reduce account creation errors. -->
     <div class="form-group">
         <label for="emailConfirm">Confirm Email</label>
 
@@ -35,11 +43,12 @@
             type="email"
             id="emailConfirm"
             name="emailConfirm"
-            placeholder=" Confirm your email address"
+            placeholder="Confirm your email address"
             required
         >
     </div>
 
+    <!-- Password requirements are enforced on both the client and server. -->
     <div class="form-group">
         <label for="password">Password</label>
 
@@ -58,6 +67,7 @@
         </div>
     </div>
 
+    <!-- Password confirmation helps prevent accidental typos. -->
     <div class="form-group">
         <label for="passwordConfirm">Password Confirmation</label>
 
@@ -72,11 +82,15 @@
         >
 
         <div class="help-text">
-            Please confirm your password
+            Please confirm your password.
         </div>
     </div>
 
-        <button type="submit">Register</button>
-    </form>
+    <!-- Submit registration information to create a new account. -->
+    <button type="submit">Register</button>
+</form>
+```
+
 </main>
+
 <%- include('../../partials/footer') %>

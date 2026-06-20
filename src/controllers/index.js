@@ -1,45 +1,43 @@
-// Route handlers for static pages
+/**
+ * Controller methods for static application pages.
+ * These routes do not require database access or complex business logic.
+ */
 
-// Home page
+/**
+ * Render the application landing page.
+ * This page serves as the primary entry point for authentication.
+ */
 const homePage = (req, res) => {
     res.render('home', {
         title: 'Welcome Home'
     });
 };
 
-// About page
+/**
+ * Render the application information page.
+ * Provides an overview of the character creator and its goals.
+ */
 const aboutPage = (req, res) => {
     res.render('about', {
         title: 'About Me'
     });
 };
 
-// Products page
-const productsPage = (req, res) => {
-    res.render('products', {
-        title: 'Our Products'
-    });
-};
-
-// Demo page
-const demoPage = (req, res) => {
-    res.render('demo', {
-        title: 'Middleware Demo Page'
-    });
-};
-
-// Route used to intentionally trigger a 500 error for testing
+/**
+ * Intentionally trigger a server error.
+ * Used to verify custom error handling and error page rendering.
+ */
 const testErrorPage = (req, res, next) => {
     const err = new Error('This is a test error');
     err.status = 500;
     next(err);
 };
 
-// Export all controllers
+/**
+ * Export static page controllers.
+ */
 export {
     homePage,
     aboutPage,
-    productsPage,
-    demoPage,
     testErrorPage
 };

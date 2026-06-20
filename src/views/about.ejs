@@ -1,31 +1,40 @@
 <%- include('partials/header') %>
 
 <main class="page">
+    <!-- General information about the application and its goals. -->
     <section class="content-card">
         <h1><%= title %></h1>
 
+        <!-- High-level overview of the project's purpose. -->
         <p>
-            We are a totally professional space crew dedicated to exploring the universe,
-            getting lost, and pretending we meant to do that.
+            This project is a modular D&amp;D character creator designed to support custom characters,
+            reusable content, and user-created rules data.
         </p>
 
-        <h2>Our Crew</h2>
+        <!-- Core objectives of the application. -->
+        <h2>Project Goals</h2>
 
+        <!-- Summary cards for the major features planned for the system. -->
         <div class="card-grid">
+
+            <!-- Character management functionality. -->
             <article class="mini-card">
-                <h3>Captain Wobble</h3>
-                <p>Leader of the mission. Cannot read maps.</p>
+                <h3>Character Building</h3>
+                <p>Create, save, edit, and manage characters connected to individual user accounts.</p>
             </article>
 
+            <!-- User-defined content stored independently from characters. -->
             <article class="mini-card">
-                <h3>Professor Zorp</h3>
-                <p>Alien scientist. Thinks humans are weird snacks.</p>
+                <h3>Custom Content</h3>
+                <p>Store classes, spells, items, features, and other reusable game data in the database.</p>
             </article>
 
+            <!-- Separation of character data and game rules for long-term flexibility. -->
             <article class="mini-card">
-                <h3>Astro-Bob</h3>
-                <p>Space mechanic. Fixes rockets with duct tape.</p>
+                <h3>Modular Rules</h3>
+                <p>Keep rules data separate from character data so the system can grow over time.</p>
             </article>
+
         </div>
     </section>
 </main>

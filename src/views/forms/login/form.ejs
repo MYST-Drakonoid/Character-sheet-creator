@@ -1,42 +1,54 @@
 <%- include('../../partials/header') %>
+
 <main>
+    <!-- Login page title and account creation link. -->
     <h1><%= title %></h1>
+
     <p>
         Enter your email and password to access your account. Do not have an account? <a href="/register">Register here</a>.
     </p>
 
+    <!-- Login error displayed after failed authentication attempts. -->
+    <% if (error) { %>
+        <p class="error-message"><%= error %></p>
+    <% } %>
+
+    <!-- User login form. -->
     <form method="POST" action="/login" class="login-form">
-        <!-- Email field -->
-        <!-- <div class="form-group"> -->
-            <!-- TODO: Add label for email -->
-            <!-- TODO: Add input type="email" with id, name, and required -->
-            <!-- TODO: Add appropriate placeholder text -->
-        <!-- </div> -->
-
-        <!-- Password field -->
-        <!-- TODO: Create form-group div -->
-        <!-- TODO: Add label for password -->
-        <!-- TODO: Add input type="password" with id, name, minlength="8", and required -->
-        <!-- TODO: Add appropriate placeholder text -->
-
-        <!-- Submit button -->
-        <!-- TODO: Add button type="submit" with text "Sign In" or "Login" -->
-
+        <!-- Email is preserved after failed login attempts. -->
         <div class="form-group">
             <label for="email">Email</label>
-            <input type="email" id="email" name="email" placeholder="Please enter your email" required>
+            <input
+                type="email"
+                id="email"
+                name="email"
+                value="<%= email || '' %>"
+                placeholder="Please enter your email"
+                required
+            >
         </div>
 
+        <!-- Password is intentionally not preserved for security. -->
         <div class="form-group">
             <label for="password">Password</label>
-            <input type="password" id="password" required name="password" minlength="8" placeholder="Please enter your password">
+            <input
+                type="password"
+                id="password"
+                name="password"
+                minlength="8"
+                placeholder="Please enter your password"
+                required
+            >
         </div>
 
+        <!-- Submit credentials to the login route. -->
         <button type="submit">Login</button>
 
+        <!-- Secondary path for users who need to create an account. -->
         <div class="form-footer">
             <p>New user? <a href="/register">Create an account</a></p>
         </div>
     </form>
 </main>
+
 <%- include('../../partials/footer') %>

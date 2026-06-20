@@ -1,42 +1,45 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <!-- Basic page metadata shared by all views that use this header partial. -->
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><%= title %></title>
+
+    <!-- Global stylesheet. Page-specific styles can be injected with renderStyles(). -->
     <link rel="stylesheet" href="/css/main.css">
+
     <% if (typeof renderStyles === 'function') { %>
-    <%- renderStyles() %>
-<% } %>
+        <%- renderStyles() %>
+    <% } %>
 </head>
 <body>
     <header class="site-header">
-        <a href="/" class="logo">🚀 Silly Space</a>
+        <!-- Main site identity link. -->
+        <a href="/" class="logo">D&D Modular Character Creator</a>
 
-<nav>
-    <ul>
-        <!-- Always visible links -->
-        <li><a href="/">Home</a></li>
-        <li><a href="/about">About</a></li>
-        <li><a href="/catalog">Course Catalog</a></li>
-        <li><a href="/faculty">Faculty Directory</a></li>
-        <li><a href="/contact">Contact</a></li>
-        <li><a href="/demo">Middleware Demo</a></li>
+        <!-- Primary site navigation. -->
+        <nav>
+            <ul>
+                <!-- Public links visible to all visitors. -->
+                <li><a href="/">Home</a></li>
+                <li><a href="/about">About</a></li>
 
-        <!-- Only visible when logged in -->
-        <% if (typeof isLoggedIn !== 'undefined' && isLoggedIn) { %>
-            <li><a href="/dashboard">Dashboard</a></li>
-            <li><a href="/register/list">All Users</a></li>
-            <li><a href="/contact/responses">Contact Responses</a></li>
-            <li><a href="/logout">Logout</a></li>
-        
+                <% if (typeof isLoggedIn !== 'undefined' && isLoggedIn) { %>
+                    <!-- Authenticated user links. -->
+                    <li><a href="/dashboard">Dashboard</a></li>
 
-        <!-- Only visible when NOT logged in -->
-        <% } else { %>
-            <li><a href="/login">Login</a></li>
-            <li><a href="/register">Register</a></li>
-        <% } %>
-    </ul>
-</nav>
+                    <!-- LEGACY / FUTURE ADMIN LINKS:
+                         Preserved as reference for later admin-style pages. -->
+                    <!-- <li><a href="/register/list">All Users</a></li> -->
+                    <!-- <li><a href="/contact/responses">Contact Responses</a></li> -->
+
+                    <li><a href="/logout">Logout</a></li>
+                <% } else { %>
+                    <!-- Guest user links. -->
+                    <li><a href="/login">Login</a></li>
+                    <li><a href="/register">Register</a></li>
+                <% } %>
+            </ul>
+        </nav>
     </header>
-

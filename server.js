@@ -78,6 +78,10 @@ app.use((req, res, next) => {
     next();
 });
 
+// Allow Express to receive and process POST data
+app.use(express.urlencoded({ extended: true }));
+app.use(express.json());
+
 /**
  * Routes
  */
@@ -124,9 +128,7 @@ app.use((err, req, res, next) => {
     }
 });
 
-// Allow Express to receive and process POST data
-app.use(express.urlencoded({ extended: true }));
-app.use(express.json());
+
 
 /**
  * Start WebSocket Server in Development Mode; used for live reloading
