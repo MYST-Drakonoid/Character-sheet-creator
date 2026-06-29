@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import { body, validationResult } from 'express-validator';
 import bcrypt from 'bcrypt';
-import { emailExists, saveUser, getAllUsers } from '../../models/forms/registration.js';
+import { emailExists, saveUser } from '../../models/forms/registration.js';
 
 const router = Router();
 
@@ -73,31 +73,15 @@ const processRegistration = async (req, res) => {
         await saveUser(name, email, hashedPassword);
 
 
-        console.log('User registered successfully');
-        res.redirect('/register/list');    
+        console.log('User registered successfully'); 
+        res.redirect('/login');
     } catch (error) {
         console.error('Error registering user:', error);
         res.redirect('/register');
     }
 };
 
-/**
- * Display all registered users.
- */
-const showAllUsers = async (req, res) => {
-    let users = [];
 
-    try {
-        users = await getAllUsers();
-    } catch (error) {
-        console.error('Error finding users:', error);
-    }
-
-    res.render('forms/registration/list', {
-        title: 'Registered Users',
-        users
-    });
-};
 
 /**
  * GET /register - Display the registration form
@@ -109,9 +93,6 @@ router.get('/', showRegistrationForm);
  */
 router.post('/', registrationValidation, processRegistration);
 
-/**
- * GET /register/list - Display all registered users
- */
-router.get('/list', showAllUsers);
+
 
 export default router;

@@ -14,6 +14,9 @@ import { caCert } from './src/models/db.js';
 
 import { startSessionCleanup } from './src/utils/session-cleanup.js';
 
+
+import characterRoutes from './src/routes/characters.js';
+
 /**
  * Server configuration
  */
@@ -86,6 +89,9 @@ app.use(express.json());
  * Routes
  */
 app.use('/', routes);
+
+
+app.use('/characters', characterRoutes);
 
 /**
  * Error Handling

@@ -1,0 +1,81 @@
+<%- include('../partials/header') %>
+
+<main>
+    <h1>Add to Character</h1>
+
+    <form method="GET" action="/characters/<%= characterId %>/add">
+        <label for="type">Choose what to add:</label>
+        <select name="type" id="type" onchange="this.form.submit()">
+            <option value="item" <%= selectedType === 'item' ? 'selected' : '' %>>Item</option>
+            <option value="spell" <%= selectedType === 'spell' ? 'selected' : '' %>>Spell</option>
+            <option value="proficiency" <%= selectedType === 'proficiency' ? 'selected' : '' %>>Proficiency</option>
+            <option value="language" <%= selectedType === 'language' ? 'selected' : '' %>>Language</option>
+            <option value="feat" <%= selectedType === 'feat' ? 'selected' : '' %>>Feat</option>
+        </select>
+    </form>
+
+    <form method="POST" action="/characters/<%= characterId %>/add">
+        <input type="hidden" name="type" value="<%= selectedType %>">
+
+        <% if (selectedType === 'item') { %>
+            <label>Item Name</label>
+            <input name="item_name" required>
+
+            <label>Quantity</label>
+            <input type="number" name="quantity" value="1" min="1">
+
+            <label>
+                <input type="checkbox" name="is_equipped">
+                Equipped
+            </label>
+        <% } %>
+
+        <% if (selectedType === 'spell') { %>
+            <label>Spell Name</label>
+            <input name="spell_name" required>
+
+            <label>Spell Level</label>
+            <input type="number" name="spell_level" value="0" min="0" max="9">
+
+            <label>
+                <input type="checkbox" name="is_prepared">
+                Prepared
+            </label>
+        <% } %>
+
+        <% if (selectedType === 'proficiency') { %>
+            <label>Category</label>
+            <input name="category" placeholder="Skill, Weapon, Tool, etc." required>
+
+            <label>Name</label>
+            <input name="name" required>
+
+            <label>Source</label>
+            <input name="source" placeholder="Class, Background, Manual, etc.">
+        <% } %>
+
+        <% if (selectedType === 'language') { %>
+            <label>Language</label>
+            <input name="language" required>
+        <% } %>
+
+        <% if (selectedType === 'feat') { %>
+            <label>Feat Name</label>
+            <input name="feat_name" required>
+        <% } %>
+
+        <label>
+            <input type="checkbox" name="is_homebrew">
+            Homebrew / Custom
+        </label>
+
+        <label>Notes</label>
+        <textarea name="notes"></textarea>
+
+        <button type="submit">Add</button>
+    </form>
+
+    <p><a href="/characters/<%= characterId %>">Back to Character Sheet</a></p>
+</main>
+
+<%- include('../partials/footer') %>

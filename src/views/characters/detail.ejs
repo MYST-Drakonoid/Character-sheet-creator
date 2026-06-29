@@ -1,0 +1,117 @@
+<%- include('../partials/header') %>
+
+<main class="character-sheet">
+    <h1><%= character.name %></h1>
+
+    <p>
+        <a href="/characters/<%= character.id %>/add">Add Item, Spell, Proficiency, Language, or Feat</a>
+    </p>
+
+    <section>
+        <h2>Character Info</h2>
+        <p>Level: <%= character.level %></p>
+        <p>Race: <%= character.race || character.race_name || 'N/A' %></p>
+        <p>Class: <%= character.class_name || 'N/A' %></p>
+        <p>Subclass: <%= character.subclass || character.subclass_name || 'N/A' %></p>
+        <p>Background: <%= character.background || character.background_name || 'N/A' %></p>
+    </section>
+
+    <section>
+        <h2>Ability Scores</h2>
+        <p>Strength: <%= character.strength %></p>
+        <p>Dexterity: <%= character.dexterity %></p>
+        <p>Constitution: <%= character.constitution %></p>
+        <p>Intelligence: <%= character.intelligence %></p>
+        <p>Wisdom: <%= character.wisdom %></p>
+        <p>Charisma: <%= character.charisma %></p>
+    </section>
+
+    <section>
+        <h2>Inventory</h2>
+        <% if (items.length === 0) { %>
+            <p>No items added yet.</p>
+        <% } else { %>
+            <ul>
+                <% items.forEach(item => { %>
+                    <li>
+                        <strong><%= item.item_name %></strong>
+                        x<%= item.quantity %>
+                        <%= item.is_equipped ? '(Equipped)' : '' %>
+                        <%= item.is_homebrew ? '(Homebrew)' : '' %>
+                    </li>
+                <% }) %>
+            </ul>
+        <% } %>
+    </section>
+
+    <section>
+        <h2>Spells</h2>
+        <% if (spells.length === 0) { %>
+            <p>No spells added yet.</p>
+        <% } else { %>
+            <ul>
+                <% spells.forEach(spell => { %>
+                    <li>
+                        <strong><%= spell.spell_name %></strong>
+                        — Level <%= spell.spell_level %>
+                        <%= spell.is_prepared ? '(Prepared)' : '' %>
+                    </li>
+                <% }) %>
+            </ul>
+        <% } %>
+    </section>
+
+    <section>
+        <h2>Proficiencies</h2>
+        <% if (proficiencies.length === 0) { %>
+            <p>No proficiencies added yet.</p>
+        <% } else { %>
+            <ul>
+                <% proficiencies.forEach(proficiency => { %>
+                    <li>
+                        <strong><%= proficiency.category %>:</strong>
+                        <%= proficiency.name %>
+                        <% if (proficiency.source) { %>
+                            — <%= proficiency.source %>
+                        <% } %>
+                    </li>
+                <% }) %>
+            </ul>
+        <% } %>
+    </section>
+
+    <section>
+        <h2>Languages</h2>
+        <% if (languages.length === 0) { %>
+            <p>No languages added yet.</p>
+        <% } else { %>
+            <ul>
+                <% languages.forEach(language => { %>
+                    <li><%= language.language %></li>
+                <% }) %>
+            </ul>
+        <% } %>
+    </section>
+
+    <section>
+        <h2>Feats</h2>
+        <% if (feats.length === 0) { %>
+            <p>No feats added yet.</p>
+        <% } else { %>
+            <ul>
+                <% feats.forEach(feat => { %>
+                    <li><%= feat.feat_name %></li>
+                <% }) %>
+            </ul>
+        <% } %>
+    </section>
+
+    <section>
+        <h2>Notes</h2>
+        <p><%= character.notes || 'No notes yet.' %></p>
+    </section>
+
+    <button onclick="window.print()">Print Character Sheet</button>
+</main>
+
+<%- include('../partials/footer') %>

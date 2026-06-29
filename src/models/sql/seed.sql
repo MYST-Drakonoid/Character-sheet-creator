@@ -3,257 +3,926 @@
 
 BEGIN;
 
--- Drop existing tables (in reverse dependency order)
-DROP TABLE IF EXISTS catalog CASCADE;
-DROP TABLE IF EXISTS faculty CASCADE;
-DROP TABLE IF EXISTS courses CASCADE;
-DROP TABLE IF EXISTS departments CASCADE;
+/***************************************************************************
+    D&D Character Creator Database Schema
+
+    Purpose:
+    This schema supports a character-creator-focused application.
+
+    Design idea:
+    - The characters table stores one row per character.
+    - Calculated values such as armor class, initiative, skill bonuses,
+      saving throws, proficiency bonus, and spell save DC are NOT stored here.
+      Those should be calculated in application code.
+    - Repeating character details such as items, spells, proficiencies,
+      languages, and feats are stored in child tables.
+***************************************************************************/
 
 
+/***************************************************************************
+    DROP TABLES
 
--- Create departments table
-CREATE TABLE departments (
-    id INTEGER PRIMARY KEY,
-    code VARCHAR(20) UNIQUE NOT NULL,
-    name VARCHAR(200) UNIQUE NOT NULL,
+    PostgreSQL does not support CREATE OR REPLACE TABLE.
+
+    Instead, we drop child tables first, then parent tables.
+    CASCADE removes dependent constraints safely.
+***************************************************************************/
+
+DROP TABLE IF EXISTS character_spellbook_spells CASCADE;
+DROP TABLE IF EXISTS character_spellbooks CASCADE;
+
+DROP TABLE IF EXISTS character_feats CASCADE;
+DROP TABLE IF EXISTS character_languages CASCADE;
+DROP TABLE IF EXISTS character_proficiencies CASCADE;
+DROP TABLE IF EXISTS character_spells CASCADE;
+DROP TABLE IF EXISTS character_items CASCADE;
+DROP TABLE IF EXISTS characters CASCADE;
+
+DROP TABLE IF EXISTS subclass_levels CASCADE;
+DROP TABLE IF EXISTS class_resource_levels CASCADE;
+DROP TABLE IF EXISTS class_resources CASCADE;
+DROP TABLE IF EXISTS class_levels CASCADE;
+
+DROP TABLE IF EXISTS subclasses CASCADE;
+DROP TABLE IF EXISTS feats CASCADE;
+DROP TABLE IF EXISTS backgrounds CASCADE;
+DROP TABLE IF EXISTS classes CASCADE;
+DROP TABLE IF EXISTS races CASCADE;
+
+DROP TABLE IF EXISTS users CASCADE;
+
+
+/***************************************************************************
+    USERS
+
+    Stores login/account information.
+
+    Every saved character belongs to one user.
+***************************************************************************/
+
+CREATE TABLE users (
+    -- Unique user ID
+    id SERIAL PRIMARY KEY,
+
+    -- Display name for the user
+    name VARCHAR(100) NOT NULL,
+
+    -- Email used for login
+    email VARCHAR(255) NOT NULL UNIQUE,
+
+    -- Bcrypt-hashed password
+    password VARCHAR(255) NOT NULL,
+
+    -- Record tracking
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
 
--- Create courses table
-CREATE TABLE courses (
+/***************************************************************************
+    RACES
+
+    Stores playable race options.
+
+    Examples:
+    Human, Elf, Dwarf, Dragonborn, or custom homebrew races.
+***************************************************************************/
+
+CREATE TABLE races (
+    -- Unique race ID
     id SERIAL PRIMARY KEY,
-    course_code VARCHAR(20) UNIQUE NOT NULL,
-    name VARCHAR(200) NOT NULL,
+
+    -- Race name shown in the character creator
+    name VARCHAR(100) NOT NULL,
+
+    -- Race description or rules text
     description TEXT,
-    credit_hours INTEGER NOT NULL CHECK (credit_hours > 0),
-    department_id INTEGER NOT NULL,
-    slug VARCHAR(250) UNIQUE NOT NULL,
+
+    -- Base walking speed, if applicable
+    speed INTEGER,
+
+    -- Character size, such as Small, Medium, Large
+    size VARCHAR(50),
+
+    -- TRUE means this was user-created/homebrew
+    is_homebrew BOOLEAN NOT NULL DEFAULT FALSE,
+
+    -- User who created this race; NULL means official/default content
+    created_by INTEGER REFERENCES users(id) ON DELETE SET NULL,
+
+    -- Record tracking
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (department_id) REFERENCES departments(id)
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
--- Create faculty table
-CREATE TABLE faculty (
+
+/***************************************************************************
+    CLASSES
+
+    Stores playable class options.
+
+    Examples:
+    Fighter, Wizard, Cleric, Rogue.
+***************************************************************************/
+
+CREATE TABLE classes (
+    -- Unique class ID
     id SERIAL PRIMARY KEY,
-    first_name VARCHAR(100) NOT NULL,
-    last_name VARCHAR(100) NOT NULL,
-    office VARCHAR(50),
-    phone VARCHAR(20),
-    email VARCHAR(150) UNIQUE NOT NULL,
-    department_id INTEGER NOT NULL,
-    title VARCHAR(100),
-    gender VARCHAR(1),
-    slug VARCHAR(200) UNIQUE NOT NULL,
+
+    -- Class name shown in the character creator
+    name VARCHAR(100) NOT NULL,
+
+    -- Class description or rules text
+    description TEXT,
+
+    -- Hit die size, such as 6, 8, 10, or 12
+    hit_die INTEGER,
+
+    -- Main ability or abilities, such as Strength or Intelligence
+    primary_ability VARCHAR(100),
+
+    -- TRUE means this was user-created/homebrew
+    is_homebrew BOOLEAN NOT NULL DEFAULT FALSE,
+
+    -- User who created this class; NULL means official/default content
+    created_by INTEGER REFERENCES users(id) ON DELETE SET NULL,
+
+    -- Record tracking
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (department_id) REFERENCES departments(id)
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
--- Create catalog table
-CREATE TABLE catalog (
+
+/***************************************************************************
+    SUBCLASSES
+
+    Stores subclass options.
+
+    Each subclass belongs to one class.
+
+    Examples:
+    Fighter -> Champion
+    Wizard  -> School of Evocation
+***************************************************************************/
+
+CREATE TABLE subclasses (
+    -- Unique subclass ID
     id SERIAL PRIMARY KEY,
-    course_slug VARCHAR(250) NOT NULL,
-    faculty_slug VARCHAR(200) NOT NULL,
-    time VARCHAR(100) NOT NULL,
-    room VARCHAR(50) NOT NULL,
+
+    -- Parent class
+    class_id INTEGER NOT NULL REFERENCES classes(id) ON DELETE CASCADE,
+
+    -- Subclass name
+    name VARCHAR(100) NOT NULL,
+
+    -- Subclass description or rules text
+    description TEXT,
+
+    -- TRUE means this was user-created/homebrew
+    is_homebrew BOOLEAN NOT NULL DEFAULT FALSE,
+
+    -- User who created this subclass; NULL means official/default content
+    created_by INTEGER REFERENCES users(id) ON DELETE SET NULL,
+
+    -- Record tracking
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    UNIQUE(course_slug, faculty_slug, time, room)
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
--- Insert departments
-INSERT INTO departments (id, code, name) VALUES
-    (0, 'CS', 'Computer Science'),
-    (1, 'MATH', 'Mathematics'),
-    (2, 'ENG', 'English'),
-    (3, 'INTL', 'International Studies'),
-    (4, 'REL', 'Religious Education'),
-    (5, 'GEN', 'General Studies'),
-    (6, 'ENGR', 'Engineering'),
-    (7, 'PHYS', 'Physics'),
-    (8, 'CHEM', 'Chemistry'),
-    (9, 'BIO', 'Biology'),
-    (10, 'ECON', 'Economics'),
-    (11, 'HIST', 'History');
+/***************************************************************************
+    CLASS LEVELS
 
--- Insert courses
-INSERT INTO courses (course_code, name, description, credit_hours, department_id, slug) VALUES
-    ('CSE 110', 'Introduction to Programming', 'Fundamentals of programming using Python. Introduction to problem solving, algorithm development, and basic programming concepts including variables, control structures, and functions.', 2, 0, 'cse-110'),
-    ('CSE 111', 'Programming with Functions', 'Learn to become a more organized, efficient, and capable computer programmer by researching and calling functions written by others; writing, calling, debugging, and testing your own functions.', 2, 0, 'cse-111'),
-    ('CSE 210', 'Programming with Classes', 'Introduction to the notion of classes and objects. Presents encapsulation at a conceptual level and works with inheritance and polymorphism.', 3, 0, 'cse-210'),
-    ('CSE 212', 'Programming with Data Structures', 'Data structures and algorithms including dynamic arrays, linked lists, stacks, queues, trees, graphs, and hash tables. Algorithm analysis and Big O notation.', 3, 0, 'cse-212'),
-    ('CSE 310', 'Operating Systems', 'Operating system concepts including processes, threads, CPU scheduling, memory management, file systems, and system security.', 3, 0, 'cse-310'),
-    ('CSE 340', 'Software Engineering', 'Software development lifecycle, requirements analysis, design patterns, testing strategies, and project management in software development.', 3, 0, 'cse-340'),
-    ('CSE 398', 'Computer Science Internship', 'Supervised work experience in computer science. Students apply classroom knowledge in real-world professional settings.', 3, 0, 'cse-398'),
-    ('CIT 160', 'Introduction to Programming', 'Fundamental programming concepts using modern programming languages. Problem solving, algorithm development, and basic programming structures.', 3, 0, 'cit-160'),
-    ('CIT 241', 'Network Routing and Switching', 'Initial router configuration, Cisco IOS Software management, routing protocol configuration, TCP/IP, and access control lists (ACLs).', 3, 0, 'cit-241'),
-    ('CIT 260', 'Object Oriented Programming', 'Fundamentals of Object Oriented Programming using Java. Classes, objects, inheritance, polymorphism, and graphical user interfaces.', 3, 0, 'cit-260'),
-    ('CIT 336', 'Web Backend Development', 'Server-side web development using modern frameworks and databases. RESTful APIs, authentication, and data management.', 3, 0, 'cit-336'),
-    ('WDD 130', 'Web Fundamentals', 'Introduction to web development using HTML and CSS. Basic web page structure, styling, and responsive design principles.', 2, 0, 'wdd-130'),
-    ('WDD 230', 'Web Frontend Development I', 'Advanced HTML, CSS, and JavaScript. DOM manipulation, event handling, and modern web development tools and practices.', 3, 0, 'wdd-230'),
-    ('WDD 330', 'Web Frontend Development II', 'Advanced JavaScript frameworks and libraries. Single page applications, state management, and modern frontend development patterns.', 3, 0, 'wdd-330'),
-    ('WDD 430', 'Full Stack Development', 'Integration of frontend and backend technologies. Database design, API development, and deployment of full-stack web applications.', 3, 0, 'wdd-430'),
-    ('MATH 108X', 'Mathematics Preparation', 'Preparation for college-level mathematics. Review of algebra, geometry, and trigonometry concepts needed for calculus.', 3, 1, 'math-108x'),
-    ('MATH 112', 'Calculus I', 'Limits, derivatives, and applications of derivatives. Introduction to integration and the Fundamental Theorem of Calculus.', 4, 1, 'math-112'),
-    ('MATH 113', 'Calculus II', 'Integration techniques, applications of integration, infinite sequences and series, parametric equations, and polar coordinates.', 4, 1, 'math-113'),
-    ('MATH 215', 'Calculus III', 'Multivariable calculus including partial derivatives, multiple integrals, vector fields, line integrals, and surface integrals.', 4, 1, 'math-215'),
-    ('MATH 221', 'Statistics', 'Descriptive statistics, probability distributions, hypothesis testing, confidence intervals, regression analysis, and ANOVA.', 3, 1, 'math-221'),
-    ('MATH 280', 'Topics in Pure Mathematics', 'Advanced mathematical topics including proof techniques, set theory, number theory, and abstract algebra concepts.', 3, 1, 'math-280'),
-    ('MATH 341', 'Differential Equations', 'First and second order differential equations, systems of differential equations, and applications to physical and biological systems.', 3, 1, 'math-341'),
-    ('ENG 106', 'English Preparation', 'Development of basic writing skills including grammar, sentence structure, paragraph development, and essay organization.', 3, 2, 'eng-106'),
-    ('ENG 150', 'Writing and Reasoning Foundations', 'Academic writing with emphasis on critical thinking, research skills, and argumentation. Introduction to various rhetorical modes.', 3, 2, 'eng-150'),
-    ('ENG 250', 'Writing and Research', 'Advanced academic writing with emphasis on research methodology, source evaluation, and scholarly communication.', 3, 2, 'eng-250'),
-    ('ENG 216', 'Technical Writing', 'Writing for technical and professional audiences. Reports, proposals, manuals, and other forms of workplace communication.', 3, 2, 'eng-216'),
-    ('ENG 295', 'Literature and Film', 'Study of literary works and their film adaptations. Analysis of narrative techniques, themes, and cultural contexts.', 3, 2, 'eng-295'),
-    ('ENG 324', 'Shakespeare', 'Study of selected plays and sonnets by William Shakespeare with attention to language, themes, and historical context.', 3, 2, 'eng-324'),
-    ('ENG 381', 'American Literature', 'Survey of American literature from colonial period to present, including major authors, movements, and cultural influences.', 3, 2, 'eng-381'),
-    ('INTL 201', 'Introduction to International Studies', 'Overview of global issues, international relations theory, and cross-cultural analysis of political, economic, and social systems.', 3, 3, 'intl-201'),
-    ('INTL 301', 'Comparative Politics', 'Comparative analysis of political systems, governance structures, and policy-making processes across different nations.', 3, 3, 'intl-301'),
-    ('INTL 350', 'International Economics', 'Economic principles applied to international trade, finance, development, and global economic institutions.', 3, 3, 'intl-350'),
-    ('INTL 401', 'Global Issues Seminar', 'In-depth analysis of contemporary global challenges including security, environment, human rights, and economic development.', 3, 3, 'intl-401'),
-    ('REL 121', 'The Eternal Family', 'Doctrinal foundations of the family, marriage preparation, and principles of successful family relationships from an LDS perspective.', 2, 4, 'rel-121'),
-    ('REL 250', 'The Living Christ', 'Study of the life, mission, and teachings of Jesus Christ as recorded in the New Testament and modern revelation.', 2, 4, 'rel-250'),
-    ('FDMAT 108', 'Mathematics for Life', 'Practical applications of mathematics in personal finance, statistics, and problem-solving for daily life.', 3, 1, 'fdmat-108'),
-    ('FDENG 101', 'Writing and Communication', 'Foundational writing and communication skills for academic and professional success.', 3, 2, 'fdeng-101'),
-    ('GS 170', 'Foundations of Learning', 'Study skills, time management, goal setting, and strategies for academic success in higher education.', 2, 5, 'gs-170'),
-    ('ECEN 160', 'Introduction to Electrical Engineering', 'Fundamentals of electrical engineering including circuit analysis, Ohms law, and basic electronic components.', 3, 6, 'ecen-160'),
-    ('PHYS 121', 'University Physics I', 'Mechanics, wave motion, and thermodynamics with calculus-based approach. Laboratory component included.', 4, 7, 'phys-121'),
-    ('CHEM 111', 'General Chemistry I', 'Fundamental principles of chemistry including atomic structure, bonding, stoichiometry, and thermochemistry.', 4, 8, 'chem-111'),
-    ('BIO 111', 'General Biology I', 'Introduction to biological principles including cell structure, metabolism, genetics, and evolution.', 4, 9, 'bio-111'),
-    ('ECON 151', 'Macroeconomics', 'Introduction to macroeconomic principles including national income, inflation, unemployment, and fiscal policy.', 3, 10, 'econ-151'),
-    ('HIST 170', 'Foundations of the Restoration', 'History of the restoration of the Gospel of Jesus Christ through the Prophet Joseph Smith and the early Church.', 2, 11, 'hist-170');
+    Stores level-by-level class information.
 
--- Insert faculty
-INSERT INTO faculty (first_name, last_name, office, phone, email, department_id, title, gender, slug) VALUES
-    ('Nathan', 'Jack', 'STC 310A', '208-496-7622', 'jackn@byui.edu', 0, 'Department Chair', 'm', 'nathan-jack'),
-    ('Jason', 'Allred', 'STC 310B', '208-496-7607', 'allredjas@byui.edu', 0, 'Associate Chair', 'm', 'jason-allred'),
-    ('Adam', 'Hayes', 'STC 310C', '208-496-3782', 'hayesa@byui.edu', 0, 'Associate Chair', 'm', 'adam-hayes'),
-    ('Nate', 'Phillips', 'STC 310D', '208-496-7625', 'phillipsn@byui.edu', 0, 'Associate Chair', 'm', 'nate-phillips'),
-    ('William', 'Clements', 'STC 310E', '208-496-7617', 'clementsw@byui.edu', 0, 'Program Lead', 'm', 'william-clements'),
-    ('Zachariah', 'Alvey', 'STC 330A', '208-496-3741', 'alveyz@byui.edu', 0, 'Professor', 'm', 'zachariah-alvey'),
-    ('Bradley', 'Armstrong', 'STC 330B', '208-496-3766', 'armstrongb@byui.edu', 0, 'Professor', 'm', 'bradley-armstrong'),
-    ('Lee', 'Barney', 'STC 330C', '208-496-3767', 'barneyl@byui.edu', 0, 'Professor', 'm', 'lee-barney'),
-    ('Rex', 'Barzee', 'STC 330D', '208-496-3768', 'barzeer@byui.edu', 0, 'Professor', 'm', 'rex-barzee'),
-    ('Scott', 'Burton', 'STC 330E', '208-496-7614', 'burtons@byui.edu', 0, 'Professor', 'm', 'scott-burton'),
-    ('Christopher', 'Keers', 'STC 330F', '208-496-7604', 'keersc@byui.edu', 0, 'Professor', 'm', 'christopher-keers'),
-    ('Julie Ann', 'Anderson', 'STC 330G', '208-496-4505', 'andersonju@byui.edu', 0, 'Professor', 'f', 'julie-ann-anderson'),
-    ('Joelle', 'Moen', 'GEB 205A', '208-496-4391', 'moenj@byui.edu', 2, 'Department Chair', 'f', 'joelle-moen'),
-    ('Josh', 'Allen', 'GEB 205B', '208-496-4366', 'allenj@byui.edu', 2, 'Professor', 'm', 'josh-allen'),
-    ('Matt', 'Babcock', 'GEB 205C', '208-496-4367', 'babcockm@byui.edu', 2, 'Professor', 'm', 'matt-babcock'),
-    ('Jeremy', 'Bailey', 'GEB 205D', '208-496-4405', 'baileyj@byui.edu', 2, 'Professor', 'm', 'jeremy-bailey'),
-    ('Tom', 'Ballard', 'GEB 205E', '208-496-4342', 'ballardt@byui.edu', 2, 'Professor', 'm', 'tom-ballard'),
-    ('Mark', 'Bennion', 'GEB 205F', '208-496-4368', 'bennionm@byui.edu', 2, 'Professor', 'm', 'mark-bennion'),
-    ('William', 'Brugger', 'GEB 205G', '208-496-4370', 'bruggerw@byui.edu', 2, 'Professor', 'm', 'william-brugger'),
-    ('Curtis', 'Chandler', 'GEB 205H', '208-496-4132', 'chandlerc@byui.edu', 2, 'Professor', 'm', 'curtis-chandler'),
-    ('Anna', 'Durfee', 'GEB 205I', '208-496-4304', 'durfeean@byui.edu', 2, 'Professor', 'f', 'anna-durfee'),
-    ('Elaine', 'Wagner', 'MC 301A', '208-496-7556', 'wagnere@byui.edu', 1, 'Department Chair', 'f', 'elaine-wagner'),
-    ('Brett', 'Amidan', 'MC 301B', '208-496-7563', 'amidanb@byui.edu', 1, 'Professor', 'm', 'brett-amidan'),
-    ('Dave', 'Brown', 'MC 301C', '208-496-7527', 'brownd@byui.edu', 1, 'Professor', 'm', 'dave-brown'),
-    ('Greg', 'Cameron', 'MC 301D', '208-496-7528', 'camerong@byui.edu', 1, 'Professor', 'm', 'greg-cameron'),
-    ('Paul', 'Cannon', 'MC 301E', '208-496-7565', 'cannonp@byui.edu', 1, 'Professor', 'm', 'paul-cannon'),
-    ('Paul', 'Cox', 'MC 301F', '208-496-7529', 'coxp@byui.edu', 1, 'Professor', 'm', 'paul-cox'),
-    ('Craig', 'Johnson', 'MC 301G', '208-496-7539', 'johnsonc@byui.edu', 1, 'Professor', 'm', 'craig-johnson'),
-    ('Chaz', 'Clark', 'MC 301H', '208-496-7535', 'clarkty@byui.edu', 1, 'Professor', 'm', 'chaz-clark'),
-    ('Robert', 'Colvin', 'LA 201A', '208-496-4308', 'colvinr@byui.edu', 3, 'Professor', 'm', 'robert-colvin'),
-    ('Scott', 'Galer', 'LA 201B', '208-496-4310', 'galers@byui.edu', 3, 'Professor', 'm', 'scott-galer'),
-    ('John', 'Ivers', 'LA 201C', '208-496-4313', 'iversj@byui.edu', 3, 'Professor', 'm', 'john-ivers'),
-    ('Jeremy', 'Lamoreaux', 'LA 201D', '208-496-4234', 'lamoreauxj@byui.edu', 3, 'Professor', 'm', 'jeremy-lamoreaux'),
-    ('Trever', 'McKay', 'LA 201E', '208-496-4312', 'mckaytr@byui.edu', 3, 'Department Chair', 'm', 'trever-mckay'),
-    ('Michael', 'Paul', 'LA 201F', '208-496-4315', 'paulm@byui.edu', 3, 'Professor', 'm', 'michael-paul');
+    Example:
+    Fighter level 2 gets Action Surge.
+    Wizard level 5 gets 3rd-level spell slots.
 
--- Insert catalog entries
-INSERT INTO catalog (course_slug, faculty_slug, time, room) VALUES
-    ('cse-110', 'nathan-jack', 'Mon Wed Fri 8:00-8:50', 'STC 101'),
-    ('cse-111', 'nathan-jack', 'Mon Wed Fri 9:00-9:50', 'STC 102'),
-    ('cse-210', 'nathan-jack', 'Tue Thu 10:00-11:15', 'STC 103'),
-    ('cse-212', 'nathan-jack', 'Tue Thu 1:00-2:15', 'STC 104'),
-    ('cse-340', 'nathan-jack', 'Mon Wed 2:00-3:15', 'STC 105'),
-    ('cit-160', 'jason-allred', 'Mon Wed Fri 10:00-10:50', 'STC 106'),
-    ('cit-241', 'jason-allred', 'Tue Thu 8:00-9:15', 'STC 107'),
-    ('cit-260', 'jason-allred', 'Mon Wed 11:00-12:15', 'STC 108'),
-    ('cit-336', 'jason-allred', 'Fri 1:00-3:50', 'STC 109'),
-    ('wdd-130', 'adam-hayes', 'Mon Wed Fri 11:00-11:50', 'STC 201'),
-    ('wdd-230', 'adam-hayes', 'Tue Thu 11:00-12:15', 'STC 202'),
-    ('wdd-330', 'adam-hayes', 'Mon Wed 1:00-2:15', 'STC 203'),
-    ('wdd-430', 'adam-hayes', 'Tue Thu 2:30-3:45', 'STC 204'),
-    ('cse-310', 'adam-hayes', 'Fri 9:00-11:50', 'STC 205'),
-    ('cse-398', 'nate-phillips', 'Mon Wed 9:00-10:15', 'STC 206'),
-    ('cse-110', 'nate-phillips', 'Tue Thu 9:00-10:15', 'STC 207'),
-    ('cse-111', 'nate-phillips', 'Mon Wed Fri 1:00-1:50', 'STC 208'),
-    ('cse-212', 'nate-phillips', 'Tue Thu 3:00-4:15', 'STC 209'),
-    ('cse-210', 'william-clements', 'Mon Wed Fri 2:00-2:50', 'STC 301'),
-    ('cit-160', 'william-clements', 'Tue Thu 10:00-11:15', 'STC 302'),
-    ('cit-260', 'william-clements', 'Mon Wed 3:00-4:15', 'STC 303'),
-    ('cse-340', 'zachariah-alvey', 'Tue Thu 8:00-9:15', 'STC 304'),
-    ('cse-310', 'zachariah-alvey', 'Mon Wed Fri 8:00-8:50', 'STC 305'),
-    ('cse-212', 'zachariah-alvey', 'Tue Thu 1:00-2:15', 'STC 306'),
-    ('wdd-130', 'zachariah-alvey', 'Mon Wed 4:00-5:15', 'STC 307'),
-    ('cse-111', 'zachariah-alvey', 'Fri 10:00-12:50', 'STC 308'),
-    ('cse-110', 'bradley-armstrong', 'Mon Wed Fri 12:00-12:50', 'STC 309'),
-    ('cit-241', 'bradley-armstrong', 'Tue Thu 12:00-1:15', 'STC 310'),
-    ('wdd-230', 'bradley-armstrong', 'Mon Wed 5:00-6:15', 'STC 401'),
-    ('cse-210', 'bradley-armstrong', 'Fri 2:00-4:50', 'STC 402'),
-    ('wdd-330', 'lee-barney', 'Mon Wed Fri 3:00-3:50', 'STC 403'),
-    ('cse-340', 'lee-barney', 'Tue Thu 4:00-5:15', 'STC 404'),
-    ('cit-336', 'lee-barney', 'Mon Wed 6:00-7:15', 'STC 405'),
-    ('cse-398', 'lee-barney', 'Thu 6:00-8:50', 'STC 406'),
-    ('cit-260', 'rex-barzee', 'Mon Wed Fri 4:00-4:50', 'STC 407'),
-    ('wdd-430', 'rex-barzee', 'Tue Thu 5:00-6:15', 'STC 408'),
-    ('cse-212', 'rex-barzee', 'Mon Wed 7:00-8:15', 'STC 409'),
-    ('cse-310', 'rex-barzee', 'Fri 5:00-7:50', 'STC 410'),
-    ('cse-111', 'scott-burton', 'Mon Wed Fri 5:00-5:50', 'STC 411'),
-    ('wdd-130', 'scott-burton', 'Tue Thu 6:00-7:15', 'STC 412'),
-    ('cit-160', 'scott-burton', 'Mon Wed 8:00-9:15', 'STC 413'),
-    ('wdd-230', 'scott-burton', 'Thu 7:00-9:50', 'STC 414'),
-    ('cse-210', 'christopher-keers', 'Mon Wed Fri 6:00-6:50', 'STC 415'),
-    ('cit-241', 'christopher-keers', 'Tue Thu 7:00-8:15', 'STC 416'),
-    ('cse-340', 'christopher-keers', 'Mon Wed 9:00-10:15', 'STC 417'),
-    ('wdd-330', 'christopher-keers', 'Fri 6:00-8:50', 'STC 418'),
-    ('cse-110', 'julie-ann-anderson', 'Tue Thu 8:00-9:15', 'STC 419'),
-    ('wdd-130', 'julie-ann-anderson', 'Mon Wed Fri 7:00-7:50', 'STC 420'),
-    ('cit-160', 'julie-ann-anderson', 'Tue Thu 9:00-10:15', 'STC 421'),
-    ('wdd-230', 'julie-ann-anderson', 'Mon Wed 10:00-11:15', 'STC 422'),
-    ('cse-111', 'julie-ann-anderson', 'Fri 7:00-9:50', 'STC 423'),
-    ('eng-150', 'joelle-moen', 'Mon Wed Fri 8:00-8:50', 'GEB 101'),
-    ('eng-250', 'joelle-moen', 'Tue Thu 8:00-9:15', 'GEB 102'),
-    ('eng-216', 'joelle-moen', 'Mon Wed 9:00-10:15', 'GEB 103'),
-    ('eng-324', 'joelle-moen', 'Fri 9:00-11:50', 'GEB 104'),
-    ('eng-106', 'josh-allen', 'Mon Wed Fri 9:00-9:50', 'GEB 105'),
-    ('eng-150', 'josh-allen', 'Tue Thu 9:00-10:15', 'GEB 106'),
-    ('eng-295', 'josh-allen', 'Mon Wed 10:00-11:15', 'GEB 107'),
-    ('eng-381', 'josh-allen', 'Fri 10:00-12:50', 'GEB 108'),
-    ('eng-150', 'matt-babcock', 'Mon Wed Fri 10:00-10:50', 'GEB 201'),
-    ('eng-216', 'matt-babcock', 'Tue Thu 10:00-11:15', 'GEB 202'),
-    ('eng-250', 'matt-babcock', 'Mon Wed 11:00-12:15', 'GEB 203'),
-    ('eng-295', 'matt-babcock', 'Thu 1:00-3:50', 'GEB 204'),
-    ('eng-106', 'jeremy-bailey', 'Mon Wed Fri 11:00-11:50', 'GEB 301'),
-    ('eng-150', 'jeremy-bailey', 'Tue Thu 11:00-12:15', 'GEB 302'),
-    ('eng-324', 'jeremy-bailey', 'Mon Wed 12:00-1:15', 'GEB 303'),
-    ('eng-381', 'jeremy-bailey', 'Fri 11:00-1:50', 'GEB 304'),
-    ('eng-150', 'tom-ballard', 'Mon Wed Fri 12:00-12:50', 'GEB 305'),
-    ('eng-216', 'tom-ballard', 'Tue Thu 12:00-1:15', 'GEB 306'),
-    ('eng-250', 'tom-ballard', 'Mon Wed 1:00-2:15', 'GEB 307'),
-    ('eng-295', 'tom-ballard', 'Fri 12:00-2:50', 'GEB 308'),
-    ('math-112', 'elaine-wagner', 'Mon Wed Fri 8:00-8:50', 'MC 101'),
-    ('math-113', 'elaine-wagner', 'Tue Thu 8:00-9:15', 'MC 102'),
-    ('math-215', 'elaine-wagner', 'Mon Wed 9:00-10:15', 'MC 103'),
-    ('math-221', 'elaine-wagner', 'Fri 8:00-10:50', 'MC 104'),
-    ('math-108x', 'brett-amidan', 'Mon Wed Fri 9:00-9:50', 'MC 105'),
-    ('math-112', 'brett-amidan', 'Tue Thu 9:00-10:15', 'MC 106'),
-    ('math-280', 'brett-amidan', 'Mon Wed 10:00-11:15', 'MC 107'),
-    ('math-341', 'brett-amidan', 'Fri 9:00-11:50', 'MC 108'),
-    ('intl-201', 'robert-colvin', 'Mon Wed Fri 10:00-10:50', 'LA 101'),
-    ('intl-301', 'robert-colvin', 'Tue Thu 10:00-11:15', 'LA 102'),
-    ('intl-350', 'robert-colvin', 'Mon Wed 11:00-12:15', 'LA 103'),
-    ('intl-401', 'scott-galer', 'Mon Wed Fri 11:00-11:50', 'LA 201'),
-    ('intl-201', 'scott-galer', 'Tue Thu 11:00-12:15', 'LA 202'),
-    ('intl-350', 'scott-galer', 'Mon Wed 12:00-1:15', 'LA 203'),
-    ('intl-301', 'scott-galer', 'Fri 11:00-1:50', 'LA 204'),
-    ('intl-201', 'john-ivers', 'Mon Wed Fri 1:00-1:50', 'LA 301'),
-    ('intl-301', 'john-ivers', 'Tue Thu 1:00-2:15', 'LA 302'),
-    ('intl-401', 'john-ivers', 'Mon Wed 2:00-3:15', 'LA 303');
+    This is reference data, not character data.
+***************************************************************************/
+
+CREATE TABLE class_levels (
+    id SERIAL PRIMARY KEY,
+
+    class_id INTEGER NOT NULL
+        REFERENCES classes(id)
+        ON DELETE CASCADE,
+
+    level INTEGER NOT NULL,
+
+    proficiency_bonus INTEGER,
+
+    features TEXT,
+
+    cantrips_known INTEGER,
+    spells_known INTEGER,
+
+    spell_slots_1 INTEGER DEFAULT 0,
+    spell_slots_2 INTEGER DEFAULT 0,
+    spell_slots_3 INTEGER DEFAULT 0,
+    spell_slots_4 INTEGER DEFAULT 0,
+    spell_slots_5 INTEGER DEFAULT 0,
+    spell_slots_6 INTEGER DEFAULT 0,
+    spell_slots_7 INTEGER DEFAULT 0,
+    spell_slots_8 INTEGER DEFAULT 0,
+    spell_slots_9 INTEGER DEFAULT 0,
+
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+
+    UNIQUE (class_id, level)
+);
+
+
+/***************************************************************************
+    SUBCLASS LEVELS
+
+    Stores subclass features gained at specific levels.
+
+    Example:
+    Champion Fighter level 3 gets Improved Critical.
+***************************************************************************/
+
+CREATE TABLE subclass_levels (
+    id SERIAL PRIMARY KEY,
+
+    subclass_id INTEGER NOT NULL
+        REFERENCES subclasses(id)
+        ON DELETE CASCADE,
+
+    level INTEGER NOT NULL,
+
+    features TEXT,
+
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+
+    UNIQUE (subclass_id, level)
+);
+
+/***************************************************************************
+    CLASS RESOURCES
+
+    Stores reusable class-based resources.
+
+    Examples:
+    - Sorcery Points
+    - Rage Uses
+    - Action Surge Uses
+    - Ki Points
+    - Bardic Inspiration Uses
+
+    This keeps the database flexible so different classes can use the same
+    structure for limited-use abilities.
+***************************************************************************/
+
+CREATE TABLE class_resources (
+    id SERIAL PRIMARY KEY,
+
+    class_id INTEGER NOT NULL
+        REFERENCES classes(id)
+        ON DELETE CASCADE,
+
+    name VARCHAR(100) NOT NULL,
+
+    -- Generic display category such as Points, Uses, Dice, Charges
+    resource_type VARCHAR(50) NOT NULL,
+
+    -- How the resource refreshes
+    refresh_type VARCHAR(50),
+
+    description TEXT,
+
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+
+/***************************************************************************
+    CLASS RESOURCE LEVELS
+
+    Stores how many uses/points/charges a class resource has at each level.
+
+    Example:
+    Sorcerer level 2 has 2 Sorcery Points.
+    Fighter level 2 has 1 Action Surge use.
+***************************************************************************/
+
+CREATE TABLE class_resource_levels (
+    id SERIAL PRIMARY KEY,
+
+    class_resource_id INTEGER NOT NULL
+        REFERENCES class_resources(id)
+        ON DELETE CASCADE,
+
+    level INTEGER NOT NULL,
+
+    max_amount INTEGER NOT NULL,
+
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+
+    UNIQUE (class_resource_id, level)
+);
+
+
+/***************************************************************************
+    BACKGROUNDS
+
+    Stores character background options.
+
+    Examples:
+    Acolyte, Criminal, Folk Hero, Sage.
+***************************************************************************/
+
+CREATE TABLE backgrounds (
+    -- Unique background ID
+    id SERIAL PRIMARY KEY,
+
+    -- Background name
+    name VARCHAR(100) NOT NULL,
+
+    -- Background description
+    description TEXT,
+
+    -- Background feature text
+    feature TEXT,
+
+    -- TRUE means this was user-created/homebrew
+    is_homebrew BOOLEAN NOT NULL DEFAULT FALSE,
+
+    -- User who created this background; NULL means official/default content
+    created_by INTEGER REFERENCES users(id) ON DELETE SET NULL,
+
+    -- Record tracking
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+
+/***************************************************************************
+    FEATS
+
+    Stores feat options.
+
+    Characters can gain many feats, so chosen feats are stored separately
+    in character_feats.
+***************************************************************************/
+
+CREATE TABLE feats (
+    -- Unique feat ID
+    id SERIAL PRIMARY KEY,
+
+    -- Feat name
+    name VARCHAR(100) NOT NULL,
+
+    -- Feat rules text
+    description TEXT,
+
+    -- Requirements for taking the feat
+    prerequisites TEXT,
+
+    -- TRUE means this was user-created/homebrew
+    is_homebrew BOOLEAN NOT NULL DEFAULT FALSE,
+
+    -- User who created this feat; NULL means official/default content
+    created_by INTEGER REFERENCES users(id) ON DELETE SET NULL,
+
+    -- Record tracking
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+
+/***************************************************************************
+    CHARACTERS
+
+    Stores one row per saved character.
+
+    This table stores raw character choices and user-entered values only.
+
+    It intentionally does NOT store calculated values such as:
+    - armor class
+    - initiative
+    - proficiency bonus
+    - ability modifiers
+    - saving throw bonuses
+    - skill bonuses
+    - passive perception
+    - spell save DC
+***************************************************************************/
+
+CREATE TABLE characters (
+    -- Unique character ID
+    id SERIAL PRIMARY KEY,
+
+    -- Owner of the character
+    user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+
+    -- Basic character name
+    name VARCHAR(100) NOT NULL,
+
+    -- Core character-builder selections
+    race_id INTEGER REFERENCES races(id) ON DELETE SET NULL,
+    class_id INTEGER REFERENCES classes(id) ON DELETE SET NULL,
+    subclass_id INTEGER REFERENCES subclasses(id) ON DELETE SET NULL,
+    background_id INTEGER REFERENCES backgrounds(id) ON DELETE SET NULL,
+
+    -- Character progression
+    level INTEGER NOT NULL DEFAULT 1,
+    experience INTEGER NOT NULL DEFAULT 0,
+
+    -- Raw ability scores
+    strength SMALLINT NOT NULL,
+    dexterity SMALLINT NOT NULL,
+    constitution SMALLINT NOT NULL,
+    intelligence SMALLINT NOT NULL,
+    wisdom SMALLINT NOT NULL,
+    charisma SMALLINT NOT NULL,
+
+    -- Hit points are stored because they change during play
+    current_hp INTEGER,
+    max_hp INTEGER,
+    temporary_hp INTEGER DEFAULT 0,
+
+    -- Hit dice are resources, not calculated display values
+    hit_dice_current INTEGER,
+    hit_dice_max INTEGER,
+
+    -- Currency values
+    copper INTEGER DEFAULT 0,
+    silver INTEGER DEFAULT 0,
+    electrum INTEGER DEFAULT 0,
+    gold INTEGER DEFAULT 0,
+    platinum INTEGER DEFAULT 0,
+
+    -- Character description fields
+    alignment VARCHAR(30),
+    age VARCHAR(30),
+    height VARCHAR(50),
+    weight VARCHAR(50),
+    eyes VARCHAR(50),
+    hair VARCHAR(50),
+    skin VARCHAR(50),
+
+    -- Roleplay fields
+    personality_traits TEXT,
+    ideals TEXT,
+    bonds TEXT,
+    flaws TEXT,
+    backstory TEXT,
+    notes TEXT,
+
+    -- Record tracking
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+
+/***************************************************************************
+    CHARACTER ITEMS
+
+    Stores inventory.
+
+    A character can have many items, so items are placed in a child table.
+
+    Example:
+    One character may have:
+    - Longsword
+    - Shield
+    - Backpack
+    - Potion of Healing
+***************************************************************************/
+
+CREATE TABLE character_items (
+    -- Unique inventory row ID
+    id SERIAL PRIMARY KEY,
+
+    -- Parent character
+    character_id INTEGER NOT NULL REFERENCES characters(id) ON DELETE CASCADE,
+
+    -- Item name
+    item_name VARCHAR(150) NOT NULL,
+
+    -- Number of this item owned
+    quantity INTEGER NOT NULL DEFAULT 1,
+
+    -- Whether the item is currently equipped
+    is_equipped BOOLEAN NOT NULL DEFAULT FALSE,
+
+    -- TRUE means this item is custom/homebrew
+    is_homebrew BOOLEAN NOT NULL DEFAULT FALSE,
+
+    -- Extra details about the item
+    notes TEXT
+);
+
+
+/***************************************************************************
+    CHARACTER SPELLS
+
+    Stores spells known, prepared, or available to a character.
+
+    A character can have many spells, so spells are placed in a child table.
+***************************************************************************/
+
+CREATE TABLE character_spells (
+    -- Unique character spell row ID
+    id SERIAL PRIMARY KEY,
+
+    -- Parent character
+    character_id INTEGER NOT NULL REFERENCES characters(id) ON DELETE CASCADE,
+
+    -- Spell name
+    spell_name VARCHAR(150) NOT NULL,
+
+    -- Spell level; 0 usually means cantrip
+    spell_level INTEGER NOT NULL DEFAULT 0,
+
+    -- TRUE if the spell is currently prepared
+    is_prepared BOOLEAN NOT NULL DEFAULT FALSE,
+
+    -- TRUE means this spell is custom/homebrew
+    is_homebrew BOOLEAN NOT NULL DEFAULT FALSE,
+
+    -- Extra spell notes
+    notes TEXT
+);
+
+
+/***************************************************************************
+    CHARACTER PROFICIENCIES
+
+    Stores what a character is proficient in.
+
+    These are stored because they are part of the saved character state.
+    They may come from race, class, background, feats, multiclassing,
+    or manual user choices.
+***************************************************************************/
+
+CREATE TABLE character_proficiencies (
+    -- Unique proficiency row ID
+    id SERIAL PRIMARY KEY,
+
+    -- Parent character
+    character_id INTEGER NOT NULL REFERENCES characters(id) ON DELETE CASCADE,
+
+    -- Type of proficiency:
+    -- Skill, Weapon, Armor, Tool, Vehicle, Saving Throw, etc.
+    category VARCHAR(50) NOT NULL,
+
+    -- Name of the proficiency:
+    -- Stealth, Longsword, Light Armor, Thieves' Tools, etc.
+    name VARCHAR(150) NOT NULL,
+
+    -- Where the proficiency came from:
+    -- Race, Class, Background, Feat, Manual, etc.
+    source VARCHAR(100),
+
+    -- TRUE means this proficiency is custom/homebrew
+    is_homebrew BOOLEAN NOT NULL DEFAULT FALSE,
+
+    -- Extra details
+    notes TEXT
+);
+
+
+/***************************************************************************
+    CHARACTER LANGUAGES
+
+    Stores languages known by a character.
+
+    Languages are placed in a child table because one character can know
+    many languages.
+***************************************************************************/
+
+CREATE TABLE character_languages (
+    -- Unique language row ID
+    id SERIAL PRIMARY KEY,
+
+    -- Parent character
+    character_id INTEGER NOT NULL REFERENCES characters(id) ON DELETE CASCADE,
+
+    -- Language name
+    language VARCHAR(100) NOT NULL,
+
+    -- TRUE means this language is custom/homebrew
+    is_homebrew BOOLEAN NOT NULL DEFAULT FALSE,
+
+    -- Extra details
+    notes TEXT
+);
+
+
+/***************************************************************************
+    CHARACTER FEATS
+
+    Stores feats chosen by a character.
+
+    A character can have many feats, so feats are stored in a child table.
+***************************************************************************/
+
+CREATE TABLE character_feats (
+    -- Unique character feat row ID
+    id SERIAL PRIMARY KEY,
+
+    -- Parent character
+    character_id INTEGER NOT NULL REFERENCES characters(id) ON DELETE CASCADE,
+
+    -- Feat name
+    feat_name VARCHAR(150) NOT NULL,
+
+    -- TRUE means this feat is custom/homebrew
+    is_homebrew BOOLEAN NOT NULL DEFAULT FALSE,
+
+    -- Extra feat notes
+    notes TEXT
+);
+
+/***************************************************************************
+    CHARACTER SPELLBOOKS
+
+    Stores spellbooks owned by a character.
+
+    This mainly supports wizards, but it is flexible enough for homebrew
+    classes or magic items that use spellbooks.
+***************************************************************************/
+
+CREATE TABLE character_spellbooks (
+    id SERIAL PRIMARY KEY,
+
+    character_id INTEGER NOT NULL
+        REFERENCES characters(id)
+        ON DELETE CASCADE,
+
+    name VARCHAR(150) NOT NULL DEFAULT 'Spellbook',
+
+    description TEXT,
+
+    is_primary BOOLEAN NOT NULL DEFAULT FALSE,
+
+    notes TEXT,
+
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+
+/***************************************************************************
+    CHARACTER SPELLBOOK SPELLS
+
+    Stores spells written in a spellbook.
+
+    This is separate from character_spells because a wizard may have a spell
+    in their spellbook but not currently prepared.
+***************************************************************************/
+
+CREATE TABLE character_spellbook_spells (
+    id SERIAL PRIMARY KEY,
+
+    spellbook_id INTEGER NOT NULL
+        REFERENCES character_spellbooks(id)
+        ON DELETE CASCADE,
+
+    spell_name VARCHAR(150) NOT NULL,
+
+    spell_level INTEGER NOT NULL DEFAULT 0,
+
+    -- Optional tracking fields for copied spells
+    copied_from VARCHAR(150),
+    copy_cost_gp INTEGER,
+    copy_time_hours INTEGER,
+
+    is_homebrew BOOLEAN NOT NULL DEFAULT FALSE,
+
+    notes TEXT,
+
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+/***************************************************************************
+    SRD-Compatible Starter Data
+
+    Attribution:
+    This project uses material from the SRD 5.1 by Wizards of the Coast LLC,
+    licensed under Creative Commons Attribution 4.0 International.
+
+    NOTE:
+    This inserts names and short labels only. Do not copy full PHB text.
+***************************************************************************/
+
+
+/***************************************************************************
+    RACES
+***************************************************************************/
+
+INSERT INTO races (name, description, speed, size, is_homebrew)
+VALUES
+('Dragonborn', 'SRD playable race.', 30, 'Medium', FALSE),
+('Dwarf', 'SRD playable race.', 25, 'Medium', FALSE),
+('Elf', 'SRD playable race.', 30, 'Medium', FALSE),
+('Gnome', 'SRD playable race.', 25, 'Small', FALSE),
+('Half-Elf', 'SRD playable race.', 30, 'Medium', FALSE),
+('Half-Orc', 'SRD playable race.', 30, 'Medium', FALSE),
+('Halfling', 'SRD playable race.', 25, 'Small', FALSE),
+('Human', 'SRD playable race.', 30, 'Medium', FALSE),
+('Tiefling', 'SRD playable race.', 30, 'Medium', FALSE);
+
+
+/***************************************************************************
+    CLASSES
+***************************************************************************/
+
+INSERT INTO classes (name, description, hit_die, primary_ability, is_homebrew)
+VALUES
+('Barbarian', 'SRD class.', 12, 'Strength', FALSE),
+('Bard', 'SRD class.', 8, 'Charisma', FALSE),
+('Cleric', 'SRD class.', 8, 'Wisdom', FALSE),
+('Druid', 'SRD class.', 8, 'Wisdom', FALSE),
+('Fighter', 'SRD class.', 10, 'Strength or Dexterity', FALSE),
+('Monk', 'SRD class.', 8, 'Dexterity and Wisdom', FALSE),
+('Paladin', 'SRD class.', 10, 'Strength and Charisma', FALSE),
+('Ranger', 'SRD class.', 10, 'Dexterity and Wisdom', FALSE),
+('Rogue', 'SRD class.', 8, 'Dexterity', FALSE),
+('Sorcerer', 'SRD class.', 6, 'Charisma', FALSE),
+('Warlock', 'SRD class.', 8, 'Charisma', FALSE),
+('Wizard', 'SRD class.', 6, 'Intelligence', FALSE);
+
+
+/***************************************************************************
+    SUBCLASSES
+***************************************************************************/
+
+INSERT INTO subclasses (class_id, name, description, is_homebrew)
+SELECT id, 'Path of the Berserker', 'SRD barbarian subclass.', FALSE
+FROM classes WHERE name = 'Barbarian';
+
+INSERT INTO subclasses (class_id, name, description, is_homebrew)
+SELECT id, 'College of Lore', 'SRD bard subclass.', FALSE
+FROM classes WHERE name = 'Bard';
+
+INSERT INTO subclasses (class_id, name, description, is_homebrew)
+SELECT id, 'Life Domain', 'SRD cleric subclass.', FALSE
+FROM classes WHERE name = 'Cleric';
+
+INSERT INTO subclasses (class_id, name, description, is_homebrew)
+SELECT id, 'Circle of the Land', 'SRD druid subclass.', FALSE
+FROM classes WHERE name = 'Druid';
+
+INSERT INTO subclasses (class_id, name, description, is_homebrew)
+SELECT id, 'Champion', 'SRD fighter subclass.', FALSE
+FROM classes WHERE name = 'Fighter';
+
+INSERT INTO subclasses (class_id, name, description, is_homebrew)
+SELECT id, 'Way of the Open Hand', 'SRD monk subclass.', FALSE
+FROM classes WHERE name = 'Monk';
+
+INSERT INTO subclasses (class_id, name, description, is_homebrew)
+SELECT id, 'Oath of Devotion', 'SRD paladin subclass.', FALSE
+FROM classes WHERE name = 'Paladin';
+
+INSERT INTO subclasses (class_id, name, description, is_homebrew)
+SELECT id, 'Hunter', 'SRD ranger subclass.', FALSE
+FROM classes WHERE name = 'Ranger';
+
+INSERT INTO subclasses (class_id, name, description, is_homebrew)
+SELECT id, 'Thief', 'SRD rogue subclass.', FALSE
+FROM classes WHERE name = 'Rogue';
+
+INSERT INTO subclasses (class_id, name, description, is_homebrew)
+SELECT id, 'Draconic Bloodline', 'SRD sorcerer subclass.', FALSE
+FROM classes WHERE name = 'Sorcerer';
+
+INSERT INTO subclasses (class_id, name, description, is_homebrew)
+SELECT id, 'The Fiend', 'SRD warlock subclass.', FALSE
+FROM classes WHERE name = 'Warlock';
+
+INSERT INTO subclasses (class_id, name, description, is_homebrew)
+SELECT id, 'School of Evocation', 'SRD wizard subclass.', FALSE
+FROM classes WHERE name = 'Wizard';
+
+
+/***************************************************************************
+    BACKGROUNDS
+***************************************************************************/
+
+INSERT INTO backgrounds (name, description, feature, is_homebrew)
+VALUES
+('Acolyte', 'SRD background.', 'Shelter of the Faithful', FALSE);
+
+
+/***************************************************************************
+    FEATS
+***************************************************************************/
+
+INSERT INTO feats (name, description, prerequisites, is_homebrew)
+VALUES
+('Grappler', 'SRD feat.', 'Strength 13 or higher', FALSE);
+
+
+/***************************************************************************
+    CLASS RESOURCES SEED DATA
+
+    Generic resources used by multiple classes.
+***************************************************************************/
+
+INSERT INTO class_resources (class_id, name, resource_type, refresh_type, description)
+SELECT id, 'Rage', 'Uses', 'Long Rest', 'Limited-use barbarian combat resource.'
+FROM classes WHERE name = 'Barbarian';
+
+INSERT INTO class_resources (class_id, name, resource_type, refresh_type, description)
+SELECT id, 'Bardic Inspiration', 'Uses', 'Long Rest', 'Limited-use bard support resource.'
+FROM classes WHERE name = 'Bard';
+
+INSERT INTO class_resources (class_id, name, resource_type, refresh_type, description)
+SELECT id, 'Channel Divinity', 'Uses', 'Short or Long Rest', 'Limited-use cleric divine resource.'
+FROM classes WHERE name = 'Cleric';
+
+INSERT INTO class_resources (class_id, name, resource_type, refresh_type, description)
+SELECT id, 'Wild Shape', 'Uses', 'Short or Long Rest', 'Limited-use druid transformation resource.'
+FROM classes WHERE name = 'Druid';
+
+INSERT INTO class_resources (class_id, name, resource_type, refresh_type, description)
+SELECT id, 'Action Surge', 'Uses', 'Short or Long Rest', 'Limited-use fighter extra action resource.'
+FROM classes WHERE name = 'Fighter';
+
+INSERT INTO class_resources (class_id, name, resource_type, refresh_type, description)
+SELECT id, 'Ki', 'Points', 'Short or Long Rest', 'Monk class resource.'
+FROM classes WHERE name = 'Monk';
+
+INSERT INTO class_resources (class_id, name, resource_type, refresh_type, description)
+SELECT id, 'Lay on Hands', 'Points', 'Long Rest', 'Paladin healing resource.'
+FROM classes WHERE name = 'Paladin';
+
+INSERT INTO class_resources (class_id, name, resource_type, refresh_type, description)
+SELECT id, 'Sorcery Points', 'Points', 'Long Rest', 'Sorcerer metamagic resource.'
+FROM classes WHERE name = 'Sorcerer';
+
+/***************************************************************************
+    CLASS RESOURCE LEVELS SEED DATA
+***************************************************************************/
+
+-- Barbarian Rage Uses
+INSERT INTO class_resource_levels (class_resource_id, level, max_amount)
+SELECT cr.id, v.level, v.max_amount
+FROM class_resources cr
+JOIN classes c ON cr.class_id = c.id
+JOIN (VALUES
+    (1, 2), (2, 2), (3, 3), (4, 3), (5, 3),
+    (6, 4), (7, 4), (8, 4), (9, 4), (10, 4),
+    (11, 4), (12, 5), (13, 5), (14, 5), (15, 5),
+    (16, 5), (17, 6), (18, 6), (19, 6), (20, 999)
+) AS v(level, max_amount) ON TRUE
+WHERE c.name = 'Barbarian'
+  AND cr.name = 'Rage';
+
+
+-- Fighter Action Surge Uses
+INSERT INTO class_resource_levels (class_resource_id, level, max_amount)
+SELECT cr.id, v.level, v.max_amount
+FROM class_resources cr
+JOIN classes c ON cr.class_id = c.id
+JOIN (VALUES
+    (2, 1), (3, 1), (4, 1), (5, 1),
+    (6, 1), (7, 1), (8, 1), (9, 1),
+    (10, 1), (11, 1), (12, 1), (13, 1),
+    (14, 1), (15, 1), (16, 1),
+    (17, 2), (18, 2), (19, 2), (20, 2)
+) AS v(level, max_amount) ON TRUE
+WHERE c.name = 'Fighter'
+  AND cr.name = 'Action Surge';
+
+
+-- Monk Ki Points
+INSERT INTO class_resource_levels (class_resource_id, level, max_amount)
+SELECT cr.id, v.level, v.max_amount
+FROM class_resources cr
+JOIN classes c ON cr.class_id = c.id
+JOIN (VALUES
+    (2, 2), (3, 3), (4, 4), (5, 5),
+    (6, 6), (7, 7), (8, 8), (9, 9),
+    (10, 10), (11, 11), (12, 12), (13, 13),
+    (14, 14), (15, 15), (16, 16), (17, 17),
+    (18, 18), (19, 19), (20, 20)
+) AS v(level, max_amount) ON TRUE
+WHERE c.name = 'Monk'
+  AND cr.name = 'Ki';
+
+
+-- Sorcerer Sorcery Points
+INSERT INTO class_resource_levels (class_resource_id, level, max_amount)
+SELECT cr.id, v.level, v.max_amount
+FROM class_resources cr
+JOIN classes c ON cr.class_id = c.id
+JOIN (VALUES
+    (2, 2), (3, 3), (4, 4), (5, 5),
+    (6, 6), (7, 7), (8, 8), (9, 9),
+    (10, 10), (11, 11), (12, 12), (13, 13),
+    (14, 14), (15, 15), (16, 16), (17, 17),
+    (18, 18), (19, 19), (20, 20)
+) AS v(level, max_amount) ON TRUE
+WHERE c.name = 'Sorcerer'
+  AND cr.name = 'Sorcery Points';
 
 COMMIT;
