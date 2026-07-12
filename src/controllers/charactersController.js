@@ -1,10 +1,13 @@
 import {
     getCharacterById,
     getCharacterChildRecords,
-    insertRecord,
+    insertRecord
+} from '../utils/sqlqueries.js';
+
+import {
     getCharactersByUserId,
     createCharacter
-} from '../utils/sqlqueries.js';
+} from '../models/characters.js';
 
 import { validationResult } from 'express-validator';
 
@@ -68,7 +71,7 @@ export const showAddCharacterDataForm = async (req, res) => {
     });
 };
 
-const showCreateCharacterForm = (req, res) => {
+export const showCreateCharacterForm = (req, res) => {
     res.render('characters/new', {
         title: 'Create Character',
         error: null,

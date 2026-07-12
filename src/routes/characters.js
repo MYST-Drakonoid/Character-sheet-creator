@@ -1,4 +1,5 @@
 import { Router } from 'express';
+import { body } from 'express-validator';
 
 import {
     showCharacterList,
@@ -25,18 +26,10 @@ const characterValidation = [
 
 router.get('/', showCharacterList);
 router.get('/new', showCreateCharacterForm);
-router.post('/', processCreateCharacter);
-
+router.post('/', characterValidation, processCreateCharacter);
 
 router.get('/:id', showCharacterSheet);
 router.get('/:id/add', showAddCharacterDataForm);
 router.post('/:id/add', processAddCharacterData);
-router.post('/', processCreateCharacter);
-
-router.post(
-    '/',
-    characterValidation,
-    processCreateCharacter
-);
 
 export default router;
