@@ -2,8 +2,11 @@ import {
     getCharacterById,
     getCharacterChildRecords,
     insertRecord,
-    getCharactersByUserId
+    getCharactersByUserId,
+    createCharacter
 } from '../utils/sqlqueries.js';
+
+import { validationResult } from 'express-validator';
 
 export const showCharacterSheet = async (req, res) => {
     const characterId = req.params.id;
@@ -63,6 +66,43 @@ export const showAddCharacterDataForm = async (req, res) => {
         characterId: req.params.id,
         selectedType: req.query.type || 'item'
     });
+};
+
+const showCreateCharacterForm = (req, res) => {
+    res.render('characters/new', {
+        title: 'Create Character',
+        error: null,
+        name: '',
+        level: 1
+    });
+};
+
+export const processCreateCharacter = async (req, res, next) => {
+    try {
+
+        const errors = validationResult(req);
+
+        if (!errors.isEmpty()) {
+            return res.status(400).render('characters/new', {
+                title: 'Create Character',
+                error: errors.array()[0].msg,
+                name: req.body.name || '',
+                level: req.body.level || 1
+            });
+        }
+        const userId = req.session.user.id;
+        const { name, level } = req.body;
+
+        const character = await createCharacter({
+            userId,
+            name,
+            level
+        });
+
+        res.redirect(`/characters/${character.id}`);
+    } catch (error) {
+        next(error);
+    }
 };
 
 

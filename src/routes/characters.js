@@ -4,18 +4,39 @@ import {
     showCharacterList,
     showCharacterSheet,
     showAddCharacterDataForm,
-    processAddCharacterData
+    processAddCharacterData,
+    showCreateCharacterForm,
+    processCreateCharacter
 } from '../controllers/charactersController.js';
 
 const router = Router();
 
+const characterValidation = [
+    body('name')
+        .trim()
+        .isLength({ min: 1, max: 100 })
+        .withMessage('Character name is required.'),
+
+    body('level')
+        .isInt({ min: 1, max: 20 })
+        .withMessage('Level must be between 1 and 20.')
+        .toInt()
+];
+
 router.get('/', showCharacterList);
-router.get('/new', (req, res) => {
-    res.send('Create character placeholder');
-});
+router.get('/new', showCreateCharacterForm);
+router.post('/', processCreateCharacter);
+
 
 router.get('/:id', showCharacterSheet);
 router.get('/:id/add', showAddCharacterDataForm);
 router.post('/:id/add', processAddCharacterData);
+router.post('/', processCreateCharacter);
+
+router.post(
+    '/',
+    characterValidation,
+    processCreateCharacter
+);
 
 export default router;

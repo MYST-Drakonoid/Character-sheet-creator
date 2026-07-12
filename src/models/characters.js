@@ -1,4 +1,5 @@
 import db from './db.js';
+import { body } from 'express-validator';
 
 /**
  * Retrieve all characters owned by one user.
@@ -24,4 +25,36 @@ const getCharactersByUserId = async (userId) => {
     return result.rows;
 };
 
-export { getCharactersByUserId };
+const characterValidation = [
+    body('name')
+        .trim()
+        .isLength({ min: 1, max: 100 })
+        .withMessage('Character name is required.'),
+
+    body('level')
+        .isInt({ min: 1, max: 20 })
+        .withMessage('Level must be between 1 and 20.')
+        .toInt()
+];
+
+const createCharacter = async ({ userId, name, level }) => {
+    const query = `
+        INSERT INTO characters (
+            user_id,
+            name,
+            level
+        )
+        VALUES ($1, $2, $3)
+        RETURNING id, user_id, name, level, created_at
+    `;
+
+    const result = await db.query(query, [
+        userId,
+        name,
+        level
+    ]);
+
+    return result.rows[0];
+};
+
+export { getCharactersByUserId, createCharacter };
