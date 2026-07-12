@@ -7,58 +7,51 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
 /**
- * Sets up the database by running the seed.sql file if needed.
- * Checks if faculty table has data - if not, runs a full re-seed.
+ * Initialize the application database.
+ *
+ * Executes the project's seed.sql file to create the database
+ * schema and any default data required by the application.
+ *
+ * TODO:
+ * - Decide later whether to skip seeding if the database
+ *   has already been initialized.
  */
 const setupDatabase = async () => {
-        console.log('Database setup skipped during skeleton rebuild.');
-//     /**
-//      * Check if faculty table has any rows and wrap in try-catch to handle cases
-//      * where table doesn't exist yet.
-//      */
-//     let hasData = false;
-//     try {
-//         const result = await db.query(
-//             "SELECT EXISTS (SELECT 1 FROM faculty LIMIT 1) as has_data"
-//         );
-//         hasData = result.rows[0]?.has_data || false;
-//     } catch (error) {
-//         /**
-//          * If query fails (e.g., table doesn't exist), treat the same as no data.
-//          * This allows the seed process to proceed.
-//          */
-//         hasData = false;
-//     }
-    
-//     if (hasData) {
-//         console.log('Database already seeded');
-//         return true;
-//     }
-    
-//     // No faculty found - run full seed
-//     console.log('Seeding database...');
-//     const seedPath = join(__dirname, 'sql', 'seed.sql');
-//     const seedSQL = fs.readFileSync(seedPath, 'utf8');
-//     const practicePath = join(__dirname, 'sql', 'practice.sql');
-//     if (fs.existsSync(practicePath)) {
-//         const practiceSQL = fs.readFileSync(practicePath, 'utf8');
-//         await db.query(practiceSQL);
-//         console.log('Practice database tables initialized');
-// }
+    console.log('Initializing database...');
 
+    const result = await db.query(`
+        SELECT EXISTS (
+            SELECT 1
+            FROM information_schema.tables
+            WHERE table_name = 'users'
+        ) AS exists;
+    `);
 
-//     await db.query(seedSQL);
-//     console.log('Database seeded successfully');
-    
+    if (!result.rows[0].exists) {
+        const seedPath = join(__dirname, 'sql', 'seed.sql');
+        const seedSQL = fs.readFileSync(seedPath, 'utf8');
+
+        await db.query(seedSQL);
+
+        console.log('Database initialized successfully.');
+    } else {
+        console.log('Database already initialized.');
+    }
+
     return true;
 };
 
 /**
- * Tests the database connection by executing a simple query.
+ * Test the database connection.
  */
 const testConnection = async () => {
-    const result = await db.query('SELECT NOW() as current_time');
-    console.log('Database connection successful:', result.rows[0].current_time);
+    const result = await db.query('SELECT NOW() AS current_time');
+
+    console.log(
+        'Database connection successful:',
+        result.rows[0].current_time
+    );
+
     return true;
 };
 

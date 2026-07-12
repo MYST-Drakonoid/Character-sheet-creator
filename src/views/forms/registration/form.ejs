@@ -2,94 +2,103 @@
 
 <main>
     <!-- Sign Up page title. -->
-    <h1>Register</h1>
+    <h1>Sign Up</h1>
+    <p>
+    Already have an account? <a href="/login">Log In</a>.
+    </p>
 
-```
-<!-- New user registration form. -->
-<form method="POST" action="/register" class="registration-form">
+    <!-- Registration error displayed after a failed submission. -->
+    <% if (error) { %>
+        <p class="error-message"><%= error %></p>
+    <% } %>
 
-    <!-- User display name. -->
-    <div class="form-group">
-        <label for="name">Name</label>
+    <!-- New user registration form. -->
+    <form method="POST" action="/register" class="registration-form">
 
-        <input
-            type="text"
-            id="name"
-            name="name"
-            minlength="2"
-            placeholder="Enter your name"
-            required
-        >
-    </div>
+        <!-- User display name. -->
+        <div class="form-group">
+            <label for="name">Name</label>
 
-    <!-- Primary email address used for authentication and account recovery. -->
-    <div class="form-group">
-        <label for="email">Email</label>
-
-        <input
-            type="email"
-            id="email"
-            name="email"
-            placeholder="Enter your email address"
-            required
-        >
-    </div>
-
-    <!-- Email confirmation to reduce account creation errors. -->
-    <div class="form-group">
-        <label for="emailConfirm">Confirm Email</label>
-
-        <input
-            type="email"
-            id="emailConfirm"
-            name="emailConfirm"
-            placeholder="Confirm your email address"
-            required
-        >
-    </div>
-
-    <!-- Password requirements are enforced on both the client and server. -->
-    <div class="form-group">
-        <label for="password">Password</label>
-
-        <input
-            type="password"
-            id="password"
-            name="password"
-            minlength="8"
-            pattern="(?=.*[0-9])(?=.*[!@#$%^&*]).*"
-            placeholder="Enter your password"
-            required
-        >
-
-        <div class="help-text">
-            Must be at least 8 characters with a number and special character.
+            <input
+                type="text"
+                id="name"
+                name="name"
+                value="<%= name || '' %>"
+                minlength="2"
+                placeholder="Enter your name"
+                required
+            >
         </div>
-    </div>
 
-    <!-- Password confirmation helps prevent accidental typos. -->
-    <div class="form-group">
-        <label for="passwordConfirm">Password Confirmation</label>
+        <!-- Primary email address used for authentication and account recovery. -->
+        <div class="form-group">
+            <label for="email">Email</label>
 
-        <input
-            type="password"
-            id="passwordConfirm"
-            name="passwordConfirm"
-            minlength="8"
-            pattern="(?=.*[0-9])(?=.*[!@#$%^&*]).*"
-            placeholder="Confirm your password"
-            required
-        >
-
-        <div class="help-text">
-            Please confirm your password.
+            <input
+                type="email"
+                id="email"
+                name="email"
+                value="<%= email || '' %>"
+                placeholder="Enter your email address"
+                required
+            >
         </div>
-    </div>
 
-    <!-- Submit registration information to create a new account. -->
-    <button type="submit">Register</button>
-</form>
-```
+        <!-- Email confirmation to reduce account creation errors. -->
+        <div class="form-group">
+            <label for="emailConfirm">Confirm Email</label>
+
+            <input
+                type="email"
+                id="emailConfirm"
+                name="emailConfirm"
+                value="<%= emailConfirm || '' %>"
+                placeholder="Confirm your email address"
+                required
+            >
+        </div>
+
+        <!-- Password requirements are enforced on both the client and server. -->
+        <div class="form-group">
+            <label for="password">Password</label>
+
+            <input
+                type="password"
+                id="password"
+                name="password"
+                minlength="8"
+                pattern="(?=.*[0-9])(?=.*[!@#$%^&*]).*"
+                placeholder="Enter your password"
+                required
+            >
+
+            <div class="help-text">
+                Must be at least 8 characters with a number and special character.
+            </div>
+        </div>
+
+        <!-- Password confirmation helps prevent accidental typos. -->
+        <div class="form-group">
+            <label for="passwordConfirm">Password Confirmation</label>
+
+            <input
+                type="password"
+                id="passwordConfirm"
+                name="passwordConfirm"
+                minlength="8"
+                pattern="(?=.*[0-9])(?=.*[!@#$%^&*]).*"
+                placeholder="Confirm your password"
+                required
+            >
+
+            <div class="help-text">
+                Please confirm your password.
+            </div>
+        </div>
+
+        <!-- Submit registration information to create a new account. -->
+        <button type="submit">Sign Up</button>
+    </form>
 
 </main>
 

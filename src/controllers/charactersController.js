@@ -50,6 +50,11 @@ export const showAddCharacterDataForm = async (req, res) => {
     });
 };
 
+res.render('characters/index', {
+    title: 'My Characters',
+    characters
+});
+
 export const processAddCharacterData = async (req, res) => {
     const characterId = req.params.id;
     const { type } = req.body;

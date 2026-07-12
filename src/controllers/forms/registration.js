@@ -5,6 +5,16 @@ import { emailExists, saveUser } from '../../models/forms/registration.js';
 
 const router = Router();
 
+const renderRegistrationForm = (res, values = {}, error = null) => {
+    res.render('forms/registration/form', {
+        title: 'Sign Up',
+        error,
+        name: values.name || '',
+        email: values.email || '',
+        emailConfirm: values.emailConfirm || ''
+    });
+};
+
 /**
  * Validation rules for user registration
  */
@@ -37,10 +47,7 @@ const registrationValidation = [
  * Display the registration form page.
  */
 const showRegistrationForm = (req, res) => {
-    
-    res.render('forms/registration/form', {
-        title: 'Register'
-    })
+    renderRegistrationForm(res);
 };
 
 
@@ -48,12 +55,17 @@ const showRegistrationForm = (req, res) => {
  * Handle user registration with validation and password hashing.
  */
 const processRegistration = async (req, res) => {
-    // Check for validation errors
     const errors = validationResult(req);
 
     if (!errors.isEmpty()) {
         console.log(errors.array());
-        res.redirect('/register');
+
+        renderRegistrationForm(
+            res,
+            req.body,
+            errors.array()[0].msg
+        );
+
         return;
     }
 
@@ -63,8 +75,14 @@ const processRegistration = async (req, res) => {
         const existingEmail = await emailExists(email);
 
         if (existingEmail) {
-            console.log('email already exists')
-            res.redirect('/register');
+            console.log('Email already exists');
+
+            renderRegistrationForm(
+                res,
+                req.body,
+                'An account with that email already exists.'
+            );
+
             return;
         }
 
@@ -72,12 +90,16 @@ const processRegistration = async (req, res) => {
 
         await saveUser(name, email, hashedPassword);
 
-
-        console.log('User registered successfully'); 
+        console.log('User registered successfully');
         res.redirect('/login');
     } catch (error) {
         console.error('Error registering user:', error);
-        res.redirect('/register');
+
+        renderRegistrationForm(
+            res,
+            req.body,
+            'Something went wrong while signing up. Please try again.'
+        );
     }
 };
 

@@ -29,6 +29,10 @@ import loginRoutes from './forms/login.js';
 import { processLogout, showDashboard } from './forms/login.js';
 import { requireLogin } from '../middleware/auth.js';
 
+router.get('/content', requireLogin, (req, res) => {
+    res.send('Content manager placeholder');
+});
+
 /**
  * LEGACY: Route-specific stylesheet injection.
  * Preserved as a reference while the application's CSS is rebuilt.

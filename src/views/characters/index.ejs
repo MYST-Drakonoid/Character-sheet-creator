@@ -1,0 +1,96 @@
+<%- include('../partials/header') %>
+
+<main class="page characters-page">
+    <!-- Page heading and primary character creation action. -->
+    <section class="page-heading">
+        <div>
+            <h1><%= title %></h1>
+            <p>View and manage the characters connected to your account.</p>
+        </div>
+
+```
+    <a href="/characters/new" class="btn">
+        Create Character
+    </a>
+</section>
+
+<!-- Display the user's characters when at least one exists. -->
+<% if (characters && characters.length > 0) { %>
+    <section class="character-grid" aria-label="Your characters">
+        <% characters.forEach((character) => { %>
+            <article class="character-card">
+                <div class="character-card__header">
+                    <h2>
+                        <a href="/characters/<%= character.id %>">
+                            <%= character.name %>
+                        </a>
+                    </h2>
+
+                    <% if (character.level) { %>
+                        <span class="character-level">
+                            Level <%= character.level %>
+                        </span>
+                    <% } %>
+                </div>
+
+                <div class="character-card__details">
+                    <% if (character.class_name) { %>
+                        <p>
+                            <strong>Class:</strong>
+                            <%= character.class_name %>
+                        </p>
+                    <% } %>
+
+                    <% if (character.species_name) { %>
+                        <p>
+                            <strong>Species:</strong>
+                            <%= character.species_name %>
+                        </p>
+                    <% } %>
+
+                    <% if (character.background_name) { %>
+                        <p>
+                            <strong>Background:</strong>
+                            <%= character.background_name %>
+                        </p>
+                    <% } %>
+                </div>
+
+                <div class="character-card__actions">
+                    <a
+                        href="/characters/<%= character.id %>"
+                        class="btn"
+                    >
+                        View Character
+                    </a>
+
+                    <a
+                        href="/characters/<%= character.id %>/edit"
+                        class="btn btn-secondary"
+                    >
+                        Edit
+                    </a>
+                </div>
+            </article>
+        <% }) %>
+    </section>
+<% } else { %>
+    <!-- Empty state shown when the user has not created any characters. -->
+    <section class="empty-state">
+        <h2>No Characters Yet</h2>
+
+        <p>
+            Create your first character to begin building their abilities,
+            equipment, spells, and features.
+        </p>
+
+        <a href="/characters/new" class="btn">
+            Create Your First Character
+        </a>
+    </section>
+<% } %>
+```
+
+</main>
+
+<%- include('../partials/footer') %>

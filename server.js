@@ -2,6 +2,7 @@ import 'dotenv/config';
 import express from 'express';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import { requireLogin } from './src/middleware/auth.js';
 
 // Import MVC components
 import routes from './src/controllers/routes.js';
@@ -65,7 +66,6 @@ app.use(session({
  */
 app.use(express.static(path.join(__dirname, 'public')));
 
-app.use(express.urlencoded({ extended: true }));
 
 app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, 'src/views'));
@@ -91,7 +91,7 @@ app.use(express.json());
 app.use('/', routes);
 
 
-app.use('/characters', characterRoutes);
+app.use('/characters', requireLogin, characterRoutes);
 
 /**
  * Error Handling

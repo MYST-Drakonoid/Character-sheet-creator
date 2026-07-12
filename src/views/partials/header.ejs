@@ -28,17 +28,13 @@
                 <% if (typeof isLoggedIn !== 'undefined' && isLoggedIn) { %>
                     <!-- Authenticated user links. -->
                     <li><a href="/dashboard">Dashboard</a></li>
-
-                    <!-- LEGACY / FUTURE ADMIN LINKS:
-                         Preserved as reference for later admin-style pages. -->
-                    <!-- <li><a href="/register/list">All Users</a></li> -->
-                    <!-- <li><a href="/contact/responses">Contact Responses</a></li> -->
-
-                    <li><a href="/logout">Logout</a></li>
+                    <li><a href="/characters">Characters</a></li>
+                    <li><a href="/content">Content</a></li>
+                    <li><a href="/logout">Log out</a></li>
                 <% } else { %>
                     <!-- Guest user links. -->
-                    <li><a href="/login">Login</a></li>
-                    <li><a href="/register">Register</a></li>
+                    <li><a href="/login">Log In</a></li>
+                    <li><a href="/register">Sign Up</a></li>
                 <% } %>
             </ul>
         </nav>
