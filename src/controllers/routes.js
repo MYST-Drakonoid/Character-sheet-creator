@@ -14,7 +14,8 @@ const router = Router();
 import {
     homePage,
     aboutPage,
-    testErrorPage
+    testErrorPage,
+    showCharacterList
 } from './index.js';
 
 /**
@@ -78,6 +79,8 @@ router.use('/login', loginRoutes);
  */
 router.get('/logout', processLogout);
 router.get('/dashboard', requireLogin, showDashboard);
+
+
 
 /**
  * Export the configured router.

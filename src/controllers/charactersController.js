@@ -1,7 +1,8 @@
 import {
     getCharacterById,
     getCharacterChildRecords,
-    insertRecord
+    insertRecord,
+    getCharactersByUserId
 } from '../utils/sqlqueries.js';
 
 export const showCharacterSheet = async (req, res) => {
@@ -42,6 +43,20 @@ export const showCharacterSheet = async (req, res) => {
     }
 };
 
+export const showCharacterList = async (req, res, next) => {
+    try {
+        const userId = req.session.user.id;
+        const characters = await getCharactersByUserId(userId);
+
+        res.render('characters/index', {
+            title: 'My Characters',
+            characters
+        });
+    } catch (error) {
+        next(error);
+    }
+};
+
 export const showAddCharacterDataForm = async (req, res) => {
     res.render('characters/add', {
         title: 'Add to Character',
@@ -50,10 +65,6 @@ export const showAddCharacterDataForm = async (req, res) => {
     });
 };
 
-res.render('characters/index', {
-    title: 'My Characters',
-    characters
-});
 
 export const processAddCharacterData = async (req, res) => {
     const characterId = req.params.id;
@@ -121,3 +132,4 @@ export const processAddCharacterData = async (req, res) => {
         });
     }
 };
+

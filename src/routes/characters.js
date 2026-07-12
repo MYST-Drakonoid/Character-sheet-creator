@@ -1,5 +1,7 @@
 import { Router } from 'express';
+
 import {
+    showCharacterList,
     showCharacterSheet,
     showAddCharacterDataForm,
     processAddCharacterData
@@ -7,16 +9,13 @@ import {
 
 const router = Router();
 
-router.get('/:id', showCharacterSheet);
-router.get('/:id/add', showAddCharacterDataForm);
-router.post('/:id/add', processAddCharacterData);
-
-router.get('/', (req, res) => {
-    res.send('Character list placeholder');
-});
-
+router.get('/', showCharacterList);
 router.get('/new', (req, res) => {
     res.send('Create character placeholder');
 });
+
+router.get('/:id', showCharacterSheet);
+router.get('/:id/add', showAddCharacterDataForm);
+router.post('/:id/add', processAddCharacterData);
 
 export default router;

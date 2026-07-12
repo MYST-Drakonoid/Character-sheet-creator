@@ -7,6 +7,11 @@
  * Render the application landing page.
  * This page serves as the primary entry point for authentication.
  */
+
+
+import { getCharactersByUserId } from '../models/characters.js';
+
+
 const homePage = (req, res) => {
     res.render('home', {
         title: 'Welcome Home'
@@ -22,6 +27,9 @@ const aboutPage = (req, res) => {
         title: 'About Me'
     });
 };
+
+
+
 
 /**
  * Intentionally trigger a server error.
@@ -39,5 +47,6 @@ const testErrorPage = (req, res, next) => {
 export {
     homePage,
     aboutPage,
-    testErrorPage
+    testErrorPage,
+    characterListPage
 };
