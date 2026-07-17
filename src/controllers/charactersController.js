@@ -64,11 +64,32 @@ export const showCharacterList = async (req, res, next) => {
 };
 
 export const showAddCharacterDataForm = async (req, res) => {
-    res.render('characters/add', {
-        title: 'Add to Character',
-        characterId: req.params.id,
-        selectedType: req.query.type || 'item'
-    });
+    const characterId = req.params.id;
+    const userId = req.session.user.id;
+
+    try {
+        const character = await getCharacterById(characterId, userId);
+
+        if (!character) {
+            return res.status(404).render('errors/404', {
+                title: 'Character Not Found'
+            });
+        }
+
+        return res.render('characters/add', {
+            title: 'Add to Character',
+            characterId,
+            selectedType: req.query.type || 'item'
+        });
+    } catch (error) {
+        console.error('Error loading add-character-data form:', error);
+
+        return res.status(500).render('errors/500', {
+            title: 'Server Error',
+            error,
+            stack: error.stack
+        });
+    }
 };
 
 export const showCreateCharacterForm = (req, res) => {
@@ -111,9 +132,18 @@ export const processCreateCharacter = async (req, res, next) => {
 
 export const processAddCharacterData = async (req, res) => {
     const characterId = req.params.id;
+    const userId = req.session.user.id;
     const { type } = req.body;
 
     try {
+        const character = await getCharacterById(characterId, userId);
+
+        if (!character) {
+            return res.status(404).render('errors/404', {
+                title: 'Character Not Found'
+            });
+        }
+
         if (type === 'item') {
             await insertRecord('character_items', {
                 character_id: characterId,
@@ -165,10 +195,13 @@ export const processAddCharacterData = async (req, res) => {
             });
         }
 
-        res.redirect(`/characters/${characterId}`);
+        
+
+        return res.redirect(`/characters/${characterId}`);
     } catch (error) {
         console.error('Error adding character data:', error);
-        res.status(500).render('errors/500', {
+
+        return res.status(500).render('errors/500', {
             title: 'Server Error',
             error,
             stack: error.stack
