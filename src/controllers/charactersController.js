@@ -79,7 +79,9 @@ export const showAddCharacterDataForm = async (req, res) => {
         return res.render('characters/add', {
             title: 'Add to Character',
             characterId,
-            selectedType: req.query.type || 'item'
+            selectedType: req.query.type || 'item',
+            error: null,
+            formData: {}
         });
     } catch (error) {
         console.error('Error loading add-character-data form:', error);
@@ -92,14 +94,6 @@ export const showAddCharacterDataForm = async (req, res) => {
     }
 };
 
-export const showCreateCharacterForm = (req, res) => {
-    res.render('characters/new', {
-        title: 'Create Character',
-        error: null,
-        name: '',
-        level: 1
-    });
-};
 
 export const processCreateCharacter = async (req, res, next) => {
     try {
@@ -144,11 +138,23 @@ export const processAddCharacterData = async (req, res) => {
             });
         }
 
+        const errors = validationResult(req);
+
+        if (!errors.isEmpty()) {
+            return res.status(400).render('characters/add', {
+                title: 'Add to Character',
+                characterId,
+                selectedType: type || 'item',
+                error: errors.array()[0].msg,
+                formData: req.body
+            });
+        }
+
         if (type === 'item') {
             await insertRecord('character_items', {
                 character_id: characterId,
                 item_name: req.body.item_name,
-                quantity: req.body.quantity || 1,
+                quantity: req.body.quantity,
                 is_equipped: req.body.is_equipped === 'on',
                 is_homebrew: req.body.is_homebrew === 'on',
                 notes: req.body.notes || null
@@ -159,7 +165,7 @@ export const processAddCharacterData = async (req, res) => {
             await insertRecord('character_spells', {
                 character_id: characterId,
                 spell_name: req.body.spell_name,
-                spell_level: req.body.spell_level || 0,
+                spell_level: req.body.spell_level,
                 is_prepared: req.body.is_prepared === 'on',
                 is_homebrew: req.body.is_homebrew === 'on',
                 notes: req.body.notes || null
@@ -194,8 +200,6 @@ export const processAddCharacterData = async (req, res) => {
                 notes: req.body.notes || null
             });
         }
-
-        
 
         return res.redirect(`/characters/${characterId}`);
     } catch (error) {

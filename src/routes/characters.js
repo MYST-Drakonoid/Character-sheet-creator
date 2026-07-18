@@ -24,12 +24,96 @@ const characterValidation = [
         .toInt()
 ];
 
+const characterDataValidation = [
+    body('type')
+        .isIn([
+            'item',
+            'spell',
+            'proficiency',
+            'language',
+            'feat'
+        ])
+        .withMessage('Invalid character data type.'),
+
+    // Item validation
+    body('item_name')
+        .if((value, { req }) => req.body.type === 'item')
+        .trim()
+        .isLength({ min: 1, max: 100 })
+        .withMessage('Item name is required and must be under 100 characters.'),
+
+    body('quantity')
+        .if((value, { req }) => req.body.type === 'item')
+        .isInt({ min: 1, max: 9999 })
+        .withMessage('Quantity must be a whole number of at least 1.')
+        .toInt(),
+
+    // Spell validation
+    body('spell_name')
+        .if((value, { req }) => req.body.type === 'spell')
+        .trim()
+        .isLength({ min: 1, max: 100 })
+        .withMessage('Spell name is required and must be under 100 characters.'),
+
+    body('spell_level')
+        .if((value, { req }) => req.body.type === 'spell')
+        .isInt({ min: 0, max: 9 })
+        .withMessage('Spell level must be between 0 and 9.')
+        .toInt(),
+
+    // Proficiency validation
+    body('category')
+        .if((value, { req }) => req.body.type === 'proficiency')
+        .trim()
+        .isLength({ min: 1, max: 50 })
+        .withMessage('Proficiency category is required.'),
+
+    body('name')
+        .if((value, { req }) => req.body.type === 'proficiency')
+        .trim()
+        .isLength({ min: 1, max: 100 })
+        .withMessage('Proficiency name is required.'),
+
+    body('source')
+        .if((value, { req }) =>
+            req.body.type === 'proficiency' && value
+        )
+        .trim()
+        .isLength({ max: 100 })
+        .withMessage('Proficiency source must be under 100 characters.'),
+
+    // Language validation
+    body('language')
+        .if((value, { req }) => req.body.type === 'language')
+        .trim()
+        .isLength({ min: 1, max: 100 })
+        .withMessage('Language name is required.'),
+
+    // Feat validation
+    body('feat_name')
+        .if((value, { req }) => req.body.type === 'feat')
+        .trim()
+        .isLength({ min: 1, max: 100 })
+        .withMessage('Feat name is required.'),
+
+    // Shared notes validation
+    body('notes')
+        .optional({ checkFalsy: true })
+        .trim()
+        .isLength({ max: 2000 })
+        .withMessage('Notes must be under 2,000 characters.')
+];
+
 router.get('/', showCharacterList);
 router.get('/new', showCreateCharacterForm);
 router.post('/', characterValidation, processCreateCharacter);
 
 router.get('/:id', showCharacterSheet);
 router.get('/:id/add', showAddCharacterDataForm);
-router.post('/:id/add', processAddCharacterData);
+router.post(
+    '/:id/add',
+    characterDataValidation,
+    processAddCharacterData
+);
 
 export default router;
