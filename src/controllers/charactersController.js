@@ -6,7 +6,8 @@ import {
 
 import {
     getCharactersByUserId,
-    createCharacter
+    createCharacter,
+    updateCharacter
 } from '../models/characters.js';
 
 import { validationResult } from 'express-validator';
@@ -94,6 +95,21 @@ export const showAddCharacterDataForm = async (req, res) => {
     }
 };
 
+export const showCreateCharacterForm = (req, res) => {
+    res.render('characters/new', {
+        title: 'Create Character',
+        error: null,
+        name: '',
+        level: 1,
+        strength: 10,
+        dexterity: 10,
+        constitution: 10,
+        intelligence: 10,
+        wisdom: 10,
+        charisma: 10
+    });
+};
+
 
 export const processCreateCharacter = async (req, res, next) => {
     try {
@@ -105,16 +121,28 @@ export const processCreateCharacter = async (req, res, next) => {
                 title: 'Create Character',
                 error: errors.array()[0].msg,
                 name: req.body.name || '',
-                level: req.body.level || 1
+                level: req.body.level || 1,
+                strength: req.body.strength ?? 10,
+                dexterity: req.body.dexterity ?? 10,
+                constitution: req.body.constitution ?? 10,
+                intelligence: req.body.intelligence ?? 10,
+                wisdom: req.body.wisdom ?? 10,
+                charisma: req.body.charisma ?? 10
             });
         }
         const userId = req.session.user.id;
-        const { name, level } = req.body;
+        const { name, level, strength, dexterity, constitution, intelligence, wisdom, charisma } = req.body;
 
         const character = await createCharacter({
             userId,
             name,
-            level
+            level,
+            strength,
+            dexterity,
+            constitution,
+            intelligence,
+            wisdom,
+            charisma
         });
 
         res.redirect(`/characters/${character.id}`);
@@ -201,6 +229,8 @@ export const processAddCharacterData = async (req, res) => {
             });
         }
 
+
+
         return res.redirect(`/characters/${characterId}`);
     } catch (error) {
         console.error('Error adding character data:', error);
@@ -213,3 +243,65 @@ export const processAddCharacterData = async (req, res) => {
     }
 };
 
+export const showEditCharacterForm = async (req, res, next) => {
+    const characterId = req.params.id;
+    const userId = req.session.user.id;
+
+    try {
+        const character = await getCharacterById(
+            characterId,
+            userId
+        );
+
+        if (!character) {
+            return res.status(404).render('errors/404', {
+                title: 'Character Not Found'
+            });
+        }
+
+        return res.render('characters/edit', {
+            title: 'Edit Character',
+            error: null,
+            character
+        });
+    } catch (error) {
+        next(error);
+    }
+};
+
+export const processEditCharacter = async (req, res, next) => {
+    const characterId = req.params.id;
+    const userId = req.session.user.id;
+    const errors = validationResult(req);
+
+    if (!errors.isEmpty()) {
+        return res.status(400).render('characters/edit', {
+            title: 'Edit Character',
+            error: errors.array()[0].msg,
+            character: {
+                id: characterId,
+                name: req.body.name || '',
+                level: req.body.level || 1
+            }
+        });
+    }
+
+    try {
+        const updatedCharacter = await updateCharacter({
+            characterId,
+            userId,
+            name: req.body.name,
+            level: req.body.level
+        });
+
+        if (!updatedCharacter) {
+            return res.status(404).render('errors/404', {
+                title: 'Character Not Found'
+            });
+        }
+
+        return res.redirect(`/characters/${updatedCharacter.id}`);
+    } catch (error) {
+        next(error);
+    }
+};

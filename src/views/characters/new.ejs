@@ -34,6 +34,84 @@
             >
         </div>
 
+        <div class="form-group">
+            <label for="strength">Strength</label>
+            <input
+                type="number"
+                id="strength"
+                name="strength"
+                value="<%= strength ?? 10 %>"
+                min="1"
+                max="30"
+                required
+            >
+        </div>
+
+        <div class="form-group">
+            <label for="dexterity">Dexterity</label>
+            <input
+                type="number"
+                id="dexterity"
+                name="dexterity"
+                value="<%= dexterity ?? 10 %>"
+                min="1"
+                max="30"
+                required
+            >
+        </div>
+
+        <div class="form-group">
+            <label for="constitution">Constitution</label>
+            <input
+                type="number"
+                id="constitution"
+                name="constitution"
+                value="<%= constitution ?? 10 %>"
+                min="1"
+                max="30"
+                required
+            >
+        </div>
+
+        <div class="form-group">
+            <label for="intelligence">Intelligence</label>
+            <input
+                type="number"
+                id="intelligence"
+                name="intelligence"
+                value="<%= intelligence ?? 10 %>"
+                min="1"
+                max="30"
+                required
+            >
+        </div>
+
+        <div class="form-group">
+            <label for="wisdom">Wisdom</label>
+            <input
+                type="number"
+                id="wisdom"
+                name="wisdom"
+                value="<%= wisdom ?? 10 %>"
+                min="1"
+                max="30"
+                required
+            >
+        </div>
+
+        <div class="form-group">
+            <label for="charisma">Charisma</label>
+            <input
+                type="number"
+                id="charisma"
+                name="charisma"
+                value="<%= charisma ?? 10 %>"
+                min="1"
+                max="30"
+                required
+            >
+        </div>
+
         <button type="submit">Create Character</button>
     </form>
 </main>

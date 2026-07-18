@@ -47,6 +47,5 @@ const testErrorPage = (req, res, next) => {
 export {
     homePage,
     aboutPage,
-    testErrorPage,
-    characterListPage
+    testErrorPage
 };

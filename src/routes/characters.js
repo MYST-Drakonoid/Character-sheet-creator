@@ -6,8 +6,10 @@ import {
     showCharacterSheet,
     showAddCharacterDataForm,
     processAddCharacterData,
-    showCreateCharacterForm,
-    processCreateCharacter
+    processCreateCharacter,
+    showEditCharacterForm,
+    processEditCharacter,
+    showCreateCharacterForm
 } from '../controllers/charactersController.js';
 
 const router = Router();
@@ -21,6 +23,35 @@ const characterValidation = [
     body('level')
         .isInt({ min: 1, max: 20 })
         .withMessage('Level must be between 1 and 20.')
+        .toInt(),
+    body('strength')
+        .isInt({ min: 1, max: 30 })
+        .withMessage('Strength must be between 1 and 30.')
+        .toInt(),
+
+    body('dexterity')
+        .isInt({ min: 1, max: 30 })
+        .withMessage('Dexterity must be between 1 and 30.')
+        .toInt(),
+
+    body('constitution')
+        .isInt({ min: 1, max: 30 })
+        .withMessage('Constitution must be between 1 and 30.')
+        .toInt(),
+
+    body('intelligence')
+        .isInt({ min: 1, max: 30 })
+        .withMessage('Intelligence must be between 1 and 30.')
+        .toInt(),
+
+    body('wisdom')
+        .isInt({ min: 1, max: 30 })
+        .withMessage('Wisdom must be between 1 and 30.')
+        .toInt(),
+
+    body('charisma')
+        .isInt({ min: 1, max: 30 })
+        .withMessage('Charisma must be between 1 and 30.')
         .toInt()
 ];
 
@@ -107,6 +138,15 @@ const characterDataValidation = [
 router.get('/', showCharacterList);
 router.get('/new', showCreateCharacterForm);
 router.post('/', characterValidation, processCreateCharacter);
+
+router.get('/:id/edit', showEditCharacterForm);
+
+router.post(
+    '/:id/edit',
+    characterValidation,
+    processEditCharacter
+);
+
 
 router.get('/:id', showCharacterSheet);
 router.get('/:id/add', showAddCharacterDataForm);
