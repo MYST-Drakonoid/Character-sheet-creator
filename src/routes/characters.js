@@ -9,7 +9,9 @@ import {
     processCreateCharacter,
     showEditCharacterForm,
     processEditCharacter,
-    showCreateCharacterForm
+    showCreateCharacterForm,
+    processDeleteCharacter,
+    showDeleteCharacterConfirmation
 } from '../controllers/charactersController.js';
 
 const router = Router();
@@ -145,6 +147,16 @@ router.post(
     '/:id/edit',
     characterValidation,
     processEditCharacter
+);
+
+router.get(
+    '/:id/delete',
+    showDeleteCharacterConfirmation
+);
+
+router.post(
+    '/:id/delete',
+    processDeleteCharacter
 );
 
 

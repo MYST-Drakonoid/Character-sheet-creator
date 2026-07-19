@@ -37,12 +37,98 @@
             >
         </div>
 
-        <button type="submit">Save Changes</button>
+        <div class="form-group">
+            <label for="strength">Strength</label>
+            <input
+                type="number"
+                id="strength"
+                name="strength"
+                value="<%= character.strength %>"
+                min="1"
+                max="30"
+                required
+            >
+        </div>
+
+        <div class="form-group">
+            <label for="dexterity">Dexterity</label>
+            <input
+                type="number"
+                id="dexterity"
+                name="dexterity"
+                value="<%= character.dexterity %>"
+                min="1"
+                max="30"
+                required
+            >
+        </div>
+
+        <div class="form-group">
+            <label for="constitution">Constitution</label>
+            <input
+                type="number"
+                id="constitution"
+                name="constitution"
+                value="<%= character.constitution %>"
+                min="1"
+                max="30"
+                required
+            >
+        </div>
+
+        <div class="form-group">
+            <label for="intelligence">Intelligence</label>
+            <input
+                type="number"
+                id="intelligence"
+                name="intelligence"
+                value="<%= character.intelligence %>"
+                min="1"
+                max="30"
+                required
+            >
+        </div>
+
+        <div class="form-group">
+            <label for="wisdom">Wisdom</label>
+            <input
+                type="number"
+                id="wisdom"
+                name="wisdom"
+                value="<%= character.wisdom %>"
+                min="1"
+                max="30"
+                required
+            >
+        </div>
+
+        <div class="form-group">
+            <label for="charisma">Charisma</label>
+            <input
+                type="number"
+                id="charisma"
+                name="charisma"
+                value="<%= character.charisma %>"
+                min="1"
+                max="30"
+                required
+            >
+        </div>
+
+    </form>
+
+    <button type="submit">Save Changes</button>
     </form>
 
     <p>
         <a href="/characters/<%= character.id %>">
             Cancel
+        </a>
+    </p>
+
+    <p>
+        <a href="/characters/<%= character.id %>/delete">
+            Delete Character
         </a>
     </p>
 </main>

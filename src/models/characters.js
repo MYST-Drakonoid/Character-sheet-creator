@@ -6,7 +6,20 @@ import db from './db.js';
  * @param {number} userId - Logged-in user's database ID.
  * @returns {Promise<Array>} Characters owned by that user.
  */
-const getCharactersByUserId = async (userId) => {
+const getCharactersByUserId = async (
+    userId,
+    sort = 'created'
+) => {
+    const sortOptions = {
+        name: 'name ASC',
+        level: 'level DESC',
+        created: 'created_at DESC',
+        updated: 'updated_at DESC'
+    };
+
+    const orderBy =
+        sortOptions[sort] || sortOptions.created;
+
     const query = `
         SELECT
             id,
@@ -16,7 +29,7 @@ const getCharactersByUserId = async (userId) => {
             updated_at
         FROM characters
         WHERE user_id = $1
-        ORDER BY created_at DESC
+        ORDER BY ${orderBy}
     `;
 
     const result = await db.query(query, [userId]);
@@ -70,22 +83,40 @@ const updateCharacter = async ({
     characterId,
     userId,
     name,
-    level
+    level,
+    strength,
+    dexterity,
+    constitution,
+    intelligence,
+    wisdom,
+    charisma
 }) => {
     const query = `
         UPDATE characters
         SET
             name = $1,
             level = $2,
+            strength = $3,
+            dexterity = $4,
+            constitution = $5,
+            intelligence = $6,
+            wisdom = $7,
+            charisma = $8,
             updated_at = CURRENT_TIMESTAMP
-        WHERE id = $3
-          AND user_id = $4
+        WHERE id = $9
+          AND user_id = $10
         RETURNING id, user_id, name, level, created_at, updated_at
     `;
 
     const result = await db.query(query, [
         name,
         level,
+        strength,
+        dexterity,
+        constitution,
+        intelligence,
+        wisdom,
+        charisma,
         characterId,
         userId
     ]);
@@ -93,4 +124,23 @@ const updateCharacter = async ({
     return result.rows[0];
 };
 
-export { getCharactersByUserId, createCharacter, updateCharacter };
+const deleteCharacter = async (
+    characterId,
+    userId
+) => {
+    const query = `
+        DELETE FROM characters
+        WHERE id = $1
+          AND user_id = $2
+        RETURNING id
+    `;
+
+    const result = await db.query(query, [
+        characterId,
+        userId
+    ]);
+
+    return result.rows[0];
+};
+
+export { getCharactersByUserId, createCharacter, updateCharacter, deleteCharacter };

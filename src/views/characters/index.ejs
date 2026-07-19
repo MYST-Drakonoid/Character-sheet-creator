@@ -7,6 +7,44 @@
     </a>
 </section>
 
+<form method="GET" action="/characters">
+    <label for="sort">Sort characters by:</label>
+
+    <select id="sort" name="sort">
+        <option
+            value="created"
+            <%= selectedSort === 'created' ? 'selected' : '' %>
+        >
+            Newest Created
+        </option>
+
+        <option
+            value="updated"
+            <%= selectedSort === 'updated' ? 'selected' : '' %>
+        >
+            Recently Updated
+        </option>
+
+        <option
+            value="name"
+            <%= selectedSort === 'name' ? 'selected' : '' %>
+        >
+            Name
+        </option>
+
+        <option
+            value="level"
+            <%= selectedSort === 'level' ? 'selected' : '' %>
+        >
+            Highest Level
+        </option>
+    </select>
+
+    <button type="submit">
+        Sort
+    </button>
+</form>
+
 <!-- Display the user's characters when at least one exists. -->
 <% if (characters && characters.length > 0) { %>
     <section class="character-grid" aria-label="Your characters">

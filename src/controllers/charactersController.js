@@ -7,7 +7,8 @@ import {
 import {
     getCharactersByUserId,
     createCharacter,
-    updateCharacter
+    updateCharacter,
+    deleteCharacter
 } from '../models/characters.js';
 
 import { validationResult } from 'express-validator';
@@ -50,14 +51,35 @@ export const showCharacterSheet = async (req, res) => {
     }
 };
 
-export const showCharacterList = async (req, res, next) => {
+export const showCharacterList = async (
+    req,
+    res,
+    next
+) => {
     try {
         const userId = req.session.user.id;
-        const characters = await getCharactersByUserId(userId);
+        const sort = req.query.sort || 'created';
+
+        const allowedSorts = [
+            'name',
+            'level',
+            'created',
+            'updated'
+        ];
+
+        const selectedSort = allowedSorts.includes(sort)
+            ? sort
+            : 'created';
+
+        const characters = await getCharactersByUserId(
+            userId,
+            selectedSort
+        );
 
         res.render('characters/index', {
             title: 'My Characters',
-            characters
+            characters,
+            selectedSort
         });
     } catch (error) {
         next(error);
@@ -291,7 +313,13 @@ export const processEditCharacter = async (req, res, next) => {
             characterId,
             userId,
             name: req.body.name,
-            level: req.body.level
+            level: req.body.level,
+            strength: req.body.strength,
+            dexterity: req.body.dexterity,
+            constitution: req.body.constitution,
+            intelligence: req.body.intelligence,
+            wisdom: req.body.wisdom,
+            charisma: req.body.charisma
         });
 
         if (!updatedCharacter) {
@@ -301,6 +329,64 @@ export const processEditCharacter = async (req, res, next) => {
         }
 
         return res.redirect(`/characters/${updatedCharacter.id}`);
+    } catch (error) {
+        next(error);
+    }
+};
+
+export const processDeleteCharacter = async (
+    req,
+    res,
+    next
+) => {
+    try {
+        const characterId = req.params.id;
+        const userId = req.session.user.id;
+
+        const deleted = await deleteCharacter(
+            characterId,
+            userId
+        );
+
+        if (!deleted) {
+            return res.status(404).render(
+                'errors/404',
+                {
+                    title: 'Character Not Found'
+                }
+            );
+        }
+
+        return res.redirect('/characters');
+    } catch (error) {
+        next(error);
+    }
+};
+
+export const showDeleteCharacterConfirmation = async (
+    req,
+    res,
+    next
+) => {
+    const characterId = req.params.id;
+    const userId = req.session.user.id;
+
+    try {
+        const character = await getCharacterById(
+            characterId,
+            userId
+        );
+
+        if (!character) {
+            return res.status(404).render('errors/404', {
+                title: 'Character Not Found'
+            });
+        }
+
+        return res.render('characters/delete', {
+            title: 'Delete Character',
+            character
+        });
     } catch (error) {
         next(error);
     }
