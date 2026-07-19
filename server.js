@@ -6,6 +6,7 @@ import { requireLogin } from './src/middleware/auth.js';
 
 // Import MVC components
 import routes from './src/controllers/routes.js';
+import adminRoutes from './src/routes/admin.js';
 import { addLocalVariables } from './src/middleware/global.js';
 import { setupDatabase, testConnection } from './src/models/setup.js';
 
@@ -96,6 +97,8 @@ app.use('/', routes);
 
 
 app.use('/characters', requireLogin, characterRoutes);
+
+app.use('/admin', adminRoutes);
 
 /**
  * Error Handling
