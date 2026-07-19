@@ -166,3 +166,33 @@ app.listen(PORT, async () => {
     await testConnection();
     console.log(`Server is running on http://127.0.0.1:${PORT}`);
 });
+
+
+export const showDeleteCharacterConfirmation = async (
+    req,
+    res,
+    next
+) => {
+    const characterId = req.params.id;
+    const userId = req.session.user.id;
+
+    try {
+        const character = await getCharacterById(
+            characterId,
+            userId
+        );
+
+        if (!character) {
+            return res.status(404).render('errors/404', {
+                title: 'Character Not Found'
+            });
+        }
+
+        return res.render('characters/delete', {
+            title: 'Delete Character',
+            character
+        });
+    } catch (error) {
+        next(error);
+    }
+};

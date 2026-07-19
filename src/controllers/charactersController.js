@@ -1,10 +1,15 @@
 import {
     getCharacterById,
     getCharacterChildRecords,
-    insertRecord,
-    getCharactersByUserId,
-    createCharacter
+    insertRecord
 } from '../utils/sqlqueries.js';
+
+import {
+    getCharactersByUserId,
+    createCharacter,
+    updateCharacter,
+    deleteCharacter
+} from '../models/characters.js';
 
 import { validationResult } from 'express-validator';
 
@@ -46,14 +51,35 @@ export const showCharacterSheet = async (req, res) => {
     }
 };
 
-export const showCharacterList = async (req, res, next) => {
+export const showCharacterList = async (
+    req,
+    res,
+    next
+) => {
     try {
         const userId = req.session.user.id;
-        const characters = await getCharactersByUserId(userId);
+        const sort = req.query.sort || 'created';
+
+        const allowedSorts = [
+            'name',
+            'level',
+            'created',
+            'updated'
+        ];
+
+        const selectedSort = allowedSorts.includes(sort)
+            ? sort
+            : 'created';
+
+        const characters = await getCharactersByUserId(
+            userId,
+            selectedSort
+        );
 
         res.render('characters/index', {
             title: 'My Characters',
-            characters
+            characters,
+            selectedSort
         });
     } catch (error) {
         next(error);
@@ -61,21 +87,51 @@ export const showCharacterList = async (req, res, next) => {
 };
 
 export const showAddCharacterDataForm = async (req, res) => {
-    res.render('characters/add', {
-        title: 'Add to Character',
-        characterId: req.params.id,
-        selectedType: req.query.type || 'item'
-    });
+    const characterId = req.params.id;
+    const userId = req.session.user.id;
+
+    try {
+        const character = await getCharacterById(characterId, userId);
+
+        if (!character) {
+            return res.status(404).render('errors/404', {
+                title: 'Character Not Found'
+            });
+        }
+
+        return res.render('characters/add', {
+            title: 'Add to Character',
+            characterId,
+            selectedType: req.query.type || 'item',
+            error: null,
+            formData: {}
+        });
+    } catch (error) {
+        console.error('Error loading add-character-data form:', error);
+
+        return res.status(500).render('errors/500', {
+            title: 'Server Error',
+            error,
+            stack: error.stack
+        });
+    }
 };
 
-const showCreateCharacterForm = (req, res) => {
+export const showCreateCharacterForm = (req, res) => {
     res.render('characters/new', {
         title: 'Create Character',
         error: null,
         name: '',
-        level: 1
+        level: 1,
+        strength: 10,
+        dexterity: 10,
+        constitution: 10,
+        intelligence: 10,
+        wisdom: 10,
+        charisma: 10
     });
 };
+
 
 export const processCreateCharacter = async (req, res, next) => {
     try {
@@ -87,16 +143,28 @@ export const processCreateCharacter = async (req, res, next) => {
                 title: 'Create Character',
                 error: errors.array()[0].msg,
                 name: req.body.name || '',
-                level: req.body.level || 1
+                level: req.body.level || 1,
+                strength: req.body.strength ?? 10,
+                dexterity: req.body.dexterity ?? 10,
+                constitution: req.body.constitution ?? 10,
+                intelligence: req.body.intelligence ?? 10,
+                wisdom: req.body.wisdom ?? 10,
+                charisma: req.body.charisma ?? 10
             });
         }
         const userId = req.session.user.id;
-        const { name, level } = req.body;
+        const { name, level, strength, dexterity, constitution, intelligence, wisdom, charisma } = req.body;
 
         const character = await createCharacter({
             userId,
             name,
-            level
+            level,
+            strength,
+            dexterity,
+            constitution,
+            intelligence,
+            wisdom,
+            charisma
         });
 
         res.redirect(`/characters/${character.id}`);
@@ -108,14 +176,35 @@ export const processCreateCharacter = async (req, res, next) => {
 
 export const processAddCharacterData = async (req, res) => {
     const characterId = req.params.id;
+    const userId = req.session.user.id;
     const { type } = req.body;
 
     try {
+        const character = await getCharacterById(characterId, userId);
+
+        if (!character) {
+            return res.status(404).render('errors/404', {
+                title: 'Character Not Found'
+            });
+        }
+
+        const errors = validationResult(req);
+
+        if (!errors.isEmpty()) {
+            return res.status(400).render('characters/add', {
+                title: 'Add to Character',
+                characterId,
+                selectedType: type || 'item',
+                error: errors.array()[0].msg,
+                formData: req.body
+            });
+        }
+
         if (type === 'item') {
             await insertRecord('character_items', {
                 character_id: characterId,
                 item_name: req.body.item_name,
-                quantity: req.body.quantity || 1,
+                quantity: req.body.quantity,
                 is_equipped: req.body.is_equipped === 'on',
                 is_homebrew: req.body.is_homebrew === 'on',
                 notes: req.body.notes || null
@@ -126,7 +215,7 @@ export const processAddCharacterData = async (req, res) => {
             await insertRecord('character_spells', {
                 character_id: characterId,
                 spell_name: req.body.spell_name,
-                spell_level: req.body.spell_level || 0,
+                spell_level: req.body.spell_level,
                 is_prepared: req.body.is_prepared === 'on',
                 is_homebrew: req.body.is_homebrew === 'on',
                 notes: req.body.notes || null
@@ -162,10 +251,13 @@ export const processAddCharacterData = async (req, res) => {
             });
         }
 
-        res.redirect(`/characters/${characterId}`);
+
+
+        return res.redirect(`/characters/${characterId}`);
     } catch (error) {
         console.error('Error adding character data:', error);
-        res.status(500).render('errors/500', {
+
+        return res.status(500).render('errors/500', {
             title: 'Server Error',
             error,
             stack: error.stack
@@ -173,3 +265,129 @@ export const processAddCharacterData = async (req, res) => {
     }
 };
 
+export const showEditCharacterForm = async (req, res, next) => {
+    const characterId = req.params.id;
+    const userId = req.session.user.id;
+
+    try {
+        const character = await getCharacterById(
+            characterId,
+            userId
+        );
+
+        if (!character) {
+            return res.status(404).render('errors/404', {
+                title: 'Character Not Found'
+            });
+        }
+
+        return res.render('characters/edit', {
+            title: 'Edit Character',
+            error: null,
+            character
+        });
+    } catch (error) {
+        next(error);
+    }
+};
+
+export const processEditCharacter = async (req, res, next) => {
+    const characterId = req.params.id;
+    const userId = req.session.user.id;
+    const errors = validationResult(req);
+
+    if (!errors.isEmpty()) {
+        return res.status(400).render('characters/edit', {
+            title: 'Edit Character',
+            error: errors.array()[0].msg,
+            character: {
+                id: characterId,
+                name: req.body.name || '',
+                level: req.body.level || 1
+            }
+        });
+    }
+
+    try {
+        const updatedCharacter = await updateCharacter({
+            characterId,
+            userId,
+            name: req.body.name,
+            level: req.body.level,
+            strength: req.body.strength,
+            dexterity: req.body.dexterity,
+            constitution: req.body.constitution,
+            intelligence: req.body.intelligence,
+            wisdom: req.body.wisdom,
+            charisma: req.body.charisma
+        });
+
+        if (!updatedCharacter) {
+            return res.status(404).render('errors/404', {
+                title: 'Character Not Found'
+            });
+        }
+
+        return res.redirect(`/characters/${updatedCharacter.id}`);
+    } catch (error) {
+        next(error);
+    }
+};
+
+export const processDeleteCharacter = async (
+    req,
+    res,
+    next
+) => {
+    try {
+        const characterId = req.params.id;
+        const userId = req.session.user.id;
+
+        const deleted = await deleteCharacter(
+            characterId,
+            userId
+        );
+
+        if (!deleted) {
+            return res.status(404).render(
+                'errors/404',
+                {
+                    title: 'Character Not Found'
+                }
+            );
+        }
+
+        return res.redirect('/characters');
+    } catch (error) {
+        next(error);
+    }
+};
+
+export const showDeleteCharacterConfirmation = async (
+    req,
+    res,
+    next
+) => {
+    const characterId = req.params.id;
+    const userId = req.session.user.id;
+
+    try {
+        const character = await getCharacterById(
+            characterId,
+            userId
+        );
+
+        if (!character) {
+            return res.status(404).render('errors/404', {
+                title: 'Character Not Found'
+            });
+        }
+
+        return res.render('characters/delete', {
+            title: 'Delete Character',
+            character
+        });
+    } catch (error) {
+        next(error);
+    }
+};

@@ -1,0 +1,32 @@
+<%- include('../partials/header') %>
+
+<main class="page">
+    <h1>Delete Character</h1>
+
+    <p>
+        Are you sure you want to permanently delete
+        <strong><%= character.name %></strong>?
+    </p>
+
+    <p>
+        This will also delete the character's items,
+        spells, proficiencies, languages, and feats.
+    </p>
+
+    <form
+        method="POST"
+        action="/characters/<%= character.id %>/delete"
+    >
+        <button type="submit">
+            Yes, Delete Character
+        </button>
+    </form>
+
+    <p>
+        <a href="/characters/<%= character.id %>/edit">
+            Cancel
+        </a>
+    </p>
+</main>
+
+<%- include('../partials/footer') %>

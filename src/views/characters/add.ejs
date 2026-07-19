@@ -3,6 +3,10 @@
 <main>
     <h1>Add to Character</h1>
 
+    <% if (error) { %>
+    <p class="error-message"><%= error %></p>
+    <% } %>
+
     <form method="GET" action="/characters/<%= characterId %>/add">
         <label for="type">Choose what to add:</label>
         <select name="type" id="type" onchange="this.form.submit()">
@@ -19,10 +23,21 @@
 
         <% if (selectedType === 'item') { %>
             <label>Item Name</label>
-            <input name="item_name" required>
+            <input
+                type="text"
+                id="item_name"
+                name="item_name"
+                value="<%= formData.item_name || '' %>"
+            >
 
             <label>Quantity</label>
-            <input type="number" name="quantity" value="1" min="1">
+            <input
+                type="number"
+                id="quantity"
+                name="quantity"
+                min="1"
+                value="<%= formData.quantity || 1 %>"
+            >
 
             <label>
                 <input type="checkbox" name="is_equipped">
@@ -32,10 +47,22 @@
 
         <% if (selectedType === 'spell') { %>
             <label>Spell Name</label>
-            <input name="spell_name" required>
+            <input
+                type="text"
+                id="spell_name"
+                name="spell_name"
+                value="<%= formData.spell_name || '' %>"
+            >
 
             <label>Spell Level</label>
-            <input type="number" name="spell_level" value="0" min="0" max="9">
+            <input
+                type="number"
+                id="spell_level"
+                name="spell_level"
+                min="0"
+                max="9"
+                value="<%= formData.spell_level ?? 0 %>"
+            >
 
             <label>
                 <input type="checkbox" name="is_prepared">
@@ -65,12 +92,20 @@
         <% } %>
 
         <label>
-            <input type="checkbox" name="is_homebrew">
+            <input
+            type="checkbox"
+            id="is_homebrew"
+            name="is_homebrew"
+            <%= formData.is_homebrew === 'on' ? 'checked' : '' %>
+        >
             Homebrew / Custom
         </label>
 
         <label>Notes</label>
-        <textarea name="notes"></textarea>
+        <textarea
+            id="notes"
+            name="notes"
+        ><%= formData.notes || '' %></textarea>
 
         <button type="submit">Add</button>
     </form>

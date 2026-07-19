@@ -14,8 +14,7 @@ const router = Router();
 import {
     homePage,
     aboutPage,
-    testErrorPage,
-    showCharacterList
+    testErrorPage
 } from './index.js';
 
 /**
