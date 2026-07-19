@@ -39,7 +39,7 @@
 
                 <% if (
                     currentUser &&
-                    currentUser.role === 'owner'
+                    currentUser.role === 'owner' || currentUser.role === 'moderator'
                 ) { %>
                     <li>
                         <a href="/admin">
