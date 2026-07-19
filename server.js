@@ -31,6 +31,10 @@ const PORT = process.env.PORT || 3000;
  */
 const app = express();
 
+if (NODE_ENV === 'production') {
+    app.set('trust proxy', 1);
+}
+
 // Initialize PostgreSQL session store
 const pgSession = connectPgSimple(session);
 
@@ -167,32 +171,3 @@ app.listen(PORT, async () => {
     console.log(`Server is running on http://127.0.0.1:${PORT}`);
 });
 
-
-export const showDeleteCharacterConfirmation = async (
-    req,
-    res,
-    next
-) => {
-    const characterId = req.params.id;
-    const userId = req.session.user.id;
-
-    try {
-        const character = await getCharacterById(
-            characterId,
-            userId
-        );
-
-        if (!character) {
-            return res.status(404).render('errors/404', {
-                title: 'Character Not Found'
-            });
-        }
-
-        return res.render('characters/delete', {
-            title: 'Delete Character',
-            character
-        });
-    } catch (error) {
-        next(error);
-    }
-};
