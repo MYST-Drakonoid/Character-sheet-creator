@@ -26,13 +26,16 @@ const loginValidation = [
  * Display the Log In form.
  */
 const showLoginForm = (req, res) => {
-    res.render('forms/login/form', {
-        title: 'Log In',
-        email: '',
-        error: null
-    });
-};
+  if (req.session?.user) {
+    return res.redirect('/dashboard');
+  }
 
+  return res.render('forms/login/form', {
+    title: 'Log In',
+    email: '',
+    error: null
+  });
+};
 /**
  * Process Log In form submission.
  */
@@ -98,17 +101,39 @@ const processLogin = async (req, res) => {
         /**
          * SECURITY: Remove password before storing user data in session.
          */
-        delete user.password;
+        const sessionUser = {
+        id: user.id,
+        name: user.name,
+        email: user.email
+        };
 
-        /**
-         * Store authenticated user data in the session.
-         *
-         * TODO: Later, decide exactly which user fields belong in the session.
-         * For example: id, name, email, role.
-         */
-        req.session.user = user;
+        req.session.regenerate((sessionError) => {
+        if (sessionError) {
+            console.error('Session regeneration failed:', sessionError);
 
-        res.redirect('/dashboard');
+            return res.status(500).render('forms/login/form', {
+            title: 'Log In',
+            email,
+            error: 'Something went wrong while logging in.'
+            });
+        }
+
+        req.session.user = sessionUser;
+
+        req.session.save((saveError) => {
+            if (saveError) {
+            console.error('Session save failed:', saveError);
+
+            return res.status(500).render('forms/login/form', {
+                title: 'Log In',
+                email,
+                error: 'Something went wrong while logging in.'
+            });
+            }
+
+            return res.redirect('/dashboard');
+        });
+        });
     } catch (error) {
         console.log('error logging in:', error);
 
