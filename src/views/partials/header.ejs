@@ -1,45 +1,80 @@
 <!DOCTYPE html>
+
 <html lang="en">
 <head>
     <!-- Basic page metadata shared by all views that use this header partial. -->
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title><%= title %></title>
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
 
-    <!-- Global stylesheet. Page-specific styles can be injected with renderStyles(). -->
-    <link rel="stylesheet" href="/css/main.css">
+```
+<title><%= title %></title>
 
-    <% if (typeof renderStyles === 'function') { %>
-        <%- renderStyles() %>
-    <% } %>
+<!-- Global stylesheet. -->
+<link
+    rel="stylesheet"
+    href="/css/main.css"
+>
+
+<% if (typeof renderStyles === 'function') { %>
+    <%- renderStyles() %>
+<% } %>
+```
+
 </head>
+
 <body>
     <header class="site-header">
         <!-- Main site identity link. -->
-        <a href="/" class="logo">D&D Modular Character Creator</a>
+        <a
+            href="/"
+            class="logo"
+        >
+            D&D Modular Character Creator
+        </a>
 
-        <!-- Primary site navigation. -->
-        <nav>
-            <ul>
-                <!-- Public links visible to all visitors. -->
-                <li><a href="/">Home</a></li>
-                <li><a href="/about">About</a></li>
+```
+    <!-- Primary site navigation. -->
+    <nav>
+        <ul>
+            <!-- Public links visible to all visitors. -->
+            <li>
+                <a href="/">Home</a>
+            </li>
 
-                <% if (typeof isLoggedIn !== 'undefined' && isLoggedIn) { %>
-                    <!-- Authenticated user links. -->
-                    <li><a href="/dashboard">Dashboard</a></li>
-                    <li><a href="/characters">Characters</a></li>
-                    <li><a href="/content">Content</a></li>
-                    <li><a href="/logout">Log out</a></li>
-                <% } else { %>
-                    <!-- Guest user links. -->
-                    <li><a href="/login">Log In</a></li>
-                    <li><a href="/register">Sign Up</a></li>
-                <% } %>
+            <li>
+                <a href="/about">About</a>
+            </li>
+
+            <% if (
+                typeof isLoggedIn !== 'undefined' &&
+                isLoggedIn
+            ) { %>
+                <!-- Authenticated user links. -->
+                <li>
+                    <a href="/dashboard">
+                        Dashboard
+                    </a>
+                </li>
+
+                <li>
+                    <a href="/characters">
+                        Characters
+                    </a>
+                </li>
+
+                <li>
+                    <a href="/content">
+                        Content
+                    </a>
+                </li>
 
                 <% if (
+                    typeof currentUser !== 'undefined' &&
                     currentUser &&
-                    currentUser.role === 'owner' || currentUser.role === 'moderator'
+                    currentUser.role === 'owner'
                 ) { %>
                     <li>
                         <a href="/admin">
@@ -47,6 +82,39 @@
                         </a>
                     </li>
                 <% } %>
-            </ul>
-        </nav>
-    </header>
+
+                <% if (
+                    typeof currentUser !== 'undefined' &&
+                    currentUser &&
+                    currentUser.role === 'moderator'
+                ) { %>
+                    <li>
+                        <a href="/admin/users">
+                            User List
+                        </a>
+                    </li>
+                <% } %>
+
+                <li>
+                    <a href="/logout">
+                        Log out
+                    </a>
+                </li>
+            <% } else { %>
+                <!-- Guest user links. -->
+                <li>
+                    <a href="/login">
+                        Log In
+                    </a>
+                </li>
+
+                <li>
+                    <a href="/register">
+                        Sign Up
+                    </a>
+                </li>
+            <% } %>
+        </ul>
+    </nav>
+</header>
+```
