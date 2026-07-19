@@ -1,0 +1,51 @@
+<%- include('../partials/header') %>
+
+<main class="page">
+    <h1><%= title %></h1>
+
+    <p>
+        Manage users, roles, and account access.
+    </p>
+
+    <section class="admin-stats">
+        <article class="admin-card">
+            <h2>Users</h2>
+            <p><%= stats.user_count %></p>
+        </article>
+
+        <article class="admin-card">
+            <h2>Characters</h2>
+            <p><%= stats.character_count %></p>
+        </article>
+
+        <article class="admin-card">
+            <h2>Owners</h2>
+            <p><%= stats.owner_count %></p>
+        </article>
+
+        <article class="admin-card">
+            <h2>Moderators</h2>
+            <p><%= stats.moderator_count %></p>
+        </article>
+    </section>
+
+    <section>
+        <h2>Management</h2>
+
+        <ul>
+            <li>
+                <a href="/admin/users">
+                    Manage Users and Roles
+                </a>
+            </li>
+
+            <li>
+                <a href="/characters">
+                    View My Characters
+                </a>
+            </li>
+        </ul>
+    </section>
+</main>
+
+<%- include('../partials/footer') %>

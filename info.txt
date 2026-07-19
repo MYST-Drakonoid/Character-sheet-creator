@@ -1,0 +1,21 @@
+<% if (
+    currentUser &&
+    currentUser.role === 'owner'
+) { %>
+    <a href="/admin">
+        Owner Dashboard
+    </a>
+<% } %>
+
+
+
+<% if (
+    currentUser &&
+    ['owner', 'moderator'].includes(
+        currentUser.role
+    )
+) { %>
+    <a href="/staff">
+        Staff Dashboard
+    </a>
+<% } %>

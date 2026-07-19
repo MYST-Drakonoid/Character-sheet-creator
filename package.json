@@ -6,7 +6,8 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "dev": "nodemon --env-file=.env server.js",
-    "start": "node server.js"
+    "start": "node server.js",
+    "seed:test-accounts": "node scripts/seed-test-accounts.js"
   },
   "keywords": [],
   "type": "module",
@@ -27,4 +28,5 @@
   "devDependencies": {
     "nodemon": "^3.1.14"
   }
+
 }

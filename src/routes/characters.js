@@ -137,6 +137,7 @@ const characterDataValidation = [
         .withMessage('Notes must be under 2,000 characters.')
 ];
 
+
 router.get('/', showCharacterList);
 router.get('/new', showCreateCharacterForm);
 router.post('/', characterValidation, processCreateCharacter);

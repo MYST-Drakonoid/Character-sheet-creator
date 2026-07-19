@@ -1,0 +1,111 @@
+<% users.forEach((user) => { %>
+    <tr>
+        <% if (canEditUsers) { %>
+            <% const formId = `update-user-${user.id}`; %>
+
+            <td>
+                <input
+                    form="<%= formId %>"
+                    name="name"
+                    type="text"
+                    value="<%= user.name %>"
+                    required
+                    maxlength="100"
+                >
+            </td>
+
+            <td>
+                <input
+                    form="<%= formId %>"
+                    name="email"
+                    type="email"
+                    value="<%= user.email %>"
+                    required
+                >
+            </td>
+
+            <td>
+                <%= user.character_count %>
+            </td>
+
+            <td>
+                <select
+                    form="<%= formId %>"
+                    name="role"
+                    required
+                >
+                    <option
+                        value="user"
+                        <%= user.role === 'user'
+                            ? 'selected'
+                            : '' %>
+                    >
+                        User
+                    </option>
+
+                    <option
+                        value="moderator"
+                        <%= user.role === 'moderator'
+                            ? 'selected'
+                            : '' %>
+                    >
+                        Moderator
+                    </option>
+
+                    <option
+                        value="owner"
+                        <%= user.role === 'owner'
+                            ? 'selected'
+                            : '' %>
+                    >
+                        Owner
+                    </option>
+                </select>
+            </td>
+
+            <td>
+                <form
+                    id="<%= formId %>"
+                    method="POST"
+                    action="/admin/users/<%= user.id %>/update"
+                >
+                    <button type="submit">
+                        Update
+                    </button>
+                </form>
+
+                <form
+                    method="POST"
+                    action="/admin/users/<%= user.id %>/delete"
+                    onsubmit="
+                        return confirm(
+                            'Delete this user and their associated data?'
+                        );
+                    "
+                >
+                    <button
+                        type="submit"
+                        class="danger-button"
+                    >
+                        Delete
+                    </button>
+                </form>
+            </td>
+        <% } else { %>
+            <td><%= user.name %></td>
+            <td><%= user.email %></td>
+            <td><%= user.character_count %></td>
+            <td><%= user.role %></td>
+        <% } %>
+
+
+
+<% }) %>
+
+    </tr>
+
+            <p class="admin-navigation">
+            <a href="/dashboard" class="button">
+                ← Back to Dashboard
+            </a>
+</p>
